@@ -20,6 +20,7 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { useState } from 'react';
+import Link from 'next/link';
 
 type User = {
   id: number;
@@ -35,7 +36,7 @@ const initialUsers: User[] = [
   { id: 3, username: 'bobsponge', email: 'bobsponge@example.com', role: 'User', enabled: true },
 ];
 
-const Employees: React.FC = () => {
+const EmployeesManager: React.FC = () => {
   const [users, setUsers] = useState<User[]>(initialUsers);
 
   const handleToggleEnabled = (id: number) => {
@@ -55,15 +56,9 @@ const Employees: React.FC = () => {
   };
 
   return (
-    <Flex minH="100vh" align="center" justify="center" bg={useColorModeValue('gray.50', 'gray.800')}>
-      <Stack spacing={8} mx="auto" w="100%" maxW="1000px" py={12} px={6}>
-        <Stack align="center">
-          <Heading fontSize="4xl">Empleados</Heading>
-          {/* <Text fontSize="lg" color={useColorModeValue('gray.600', 'whiteAlpha.800')}>
-            Actualiza el estado y el rol de los usuarios
-          </Text> */}
-        </Stack>
-        <Box w="100%" maxW="1000px" mx="auto" p={6} bg={useColorModeValue('white', 'gray.700')} boxShadow="lg" rounded="lg">
+    <Flex align="center" justify="center" bg="none">
+      <Stack spacing={8} mx="auto" w="100%" bg="none" maxW="1000px" pt={16} px={6}>
+        <Box w="100%" maxW="1000px" mx="auto" p={6} bg="none" /*boxShadow="lg"*/ rounded="lg">
           <Stack align="center">
             <Table variant="simple">
               <Thead>
@@ -105,9 +100,11 @@ const Employees: React.FC = () => {
                   ))}
               </Tbody>
             </Table>
-            <Button colorScheme="blue" size="sm" mt="10px">
-              Nuevo Empleado +
-            </Button>
+            <Link href="/admin/employee" passHref>
+              <Button as="a" colorScheme="blue" size="sm" mt="10px">
+                Nuevo Empleado +
+              </Button>
+            </Link>
           </Stack>
         </Box>
       </Stack>
@@ -115,4 +112,4 @@ const Employees: React.FC = () => {
   );
 };
 
-export default Employees;
+export default EmployeesManager;

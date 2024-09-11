@@ -91,15 +91,9 @@ const DatabaseConnectionsManager: React.FC = () => {
   const selectedConnection = connections.find(conn => conn.id === selectedConnectionId);
 
   return (
-    <Flex minH="100vh" align="center" justify="center" bg={useColorModeValue('gray.50', 'gray.800')}>
-      <Stack spacing={8} mx="auto" w="100%" maxW="800px" py={12} px={6}>
-        <Stack align="center">
-          <Heading fontSize="4xl">Bases de Datos</Heading>
-          {/* <Text fontSize="lg" color={useColorModeValue('gray.600', 'whiteAlpha.800')}>
-            Actualiza los datos de conexión de tus bases de datos
-          </Text> */}
-        </Stack>
-        <Box w="100%" maxW="800px" mx="auto" p={6} bg={useColorModeValue('white', 'gray.700')} boxShadow="lg" rounded="lg">
+    <Flex align="center" justify="center" bg="none">
+      <Stack spacing={8} mx="auto" w="100%" bg="none" maxW="800px" pt={16} px={6}>
+        <Box w="100%" maxW="800px" mx="auto" p={6} bg="none" /*boxShadow="lg"*/ rounded="lg">
           <FormControl id="select-database">
             <FormLabel>Seleccionar Base de Datos</FormLabel>
             <Select placeholder="Selecciona una base de datos" onChange={handleConnectionChange}>
