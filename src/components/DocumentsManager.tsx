@@ -85,15 +85,9 @@ const DocumentsManager: React.FC = () => {
   const selectedDocument = documents.find(doc => doc.id === selectedDocumentId);
 
   return (
-    <Flex minH="100vh" align="center" justify="center" bg={useColorModeValue('gray.50', 'gray.800')}>
-      <Stack spacing={8} mx="auto" w="100%" maxW="1000px" py={12} px={6}>
-        <Stack align="center">
-          <Heading fontSize="4xl">Documentos</Heading>
-          {/* <Text fontSize="lg" color={useColorModeValue('gray.600', 'whiteAlpha.800')}>
-            Actualiza el contenido de los documentos
-          </Text> */}
-        </Stack>
-        <Box w="100%" maxW="1000px" mx="auto" p={6} bg={useColorModeValue('white', 'gray.700')} boxShadow="lg" rounded="lg">
+    <Flex align="center" justify="center" bg="none">
+      <Stack spacing={8} mx="auto" w="100%" bg="none" pt={16} px={6}>
+        <Box w="100%" maxW="1000px" mx="auto" p={6} bg="none" /*boxShadow="lg"*/ rounded="lg">
           <FormControl id="select-document">
             <FormLabel>Seleccionar Documento</FormLabel>
             <Select placeholder="Selecciona un documento" onChange={handleDocumentChange}>

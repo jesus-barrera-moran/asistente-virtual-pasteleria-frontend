@@ -50,15 +50,9 @@ const EmployeeForm: React.FC = () => {
   };
 
   return (
-    <Flex minH="100vh" align="center" justify="center" bg={useColorModeValue('gray.50', 'gray.800')}>
-      <Stack spacing={8} mx="auto" maxW="lg" py={12} px={6}>
-        {/* <Stack align="center"> */}
-          {/* <Heading fontSize="4xl">Nuevo Empleado</Heading> */}
-          {/* <Text fontSize="lg" color={useColorModeValue('gray.600', 'whiteAlpha.800')}>
-            Ingresa los detalles del empleado
-          </Text> */}
-        {/* </Stack> */}
-        <Box rounded="lg" bg={useColorModeValue('white', 'gray.700')} boxShadow="lg" p={8}>
+    <Flex align="center" justify="center" bg="none">
+      <Stack spacing={8} mx="auto" maxW="lg" bg="none" pt={16} px={6}>
+        <Box rounded="lg" bg="none" /*boxShadow="lg"*/ p={8}>
           <Stack spacing={4}>
             
             <Grid templateColumns="repeat(2, 1fr)" gap={4}>
