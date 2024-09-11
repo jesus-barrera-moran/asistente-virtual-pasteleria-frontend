@@ -3,15 +3,11 @@
 // Chakra Imports
 import {
   Box,
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
   Flex,
   Link,
   useColorModeValue,
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
-import AdminNavbarLinks from './NavbarLinksAdmin';
 import { isWindowAvailable } from '@/utils/navigation';
 
 export default function AdminNavbar(props: {
@@ -35,7 +31,6 @@ export default function AdminNavbar(props: {
 
   // Here are all the props that may change depending on navbar's type or state.(secondary, variant, scrolled)
   let mainText = useColorModeValue('navy.700', 'white');
-  let secondaryText = useColorModeValue('gray.700', 'white');
   let navbarPosition = 'fixed' as const;
   let navbarFilter = 'none';
   let navbarBackdrop = 'blur(20px)';
@@ -110,27 +105,14 @@ export default function AdminNavbar(props: {
         mb={gap}
       >
         <Box mb={{ base: '8px', md: '0px' }}>
-          <Breadcrumb>
-            <BreadcrumbItem color={secondaryText} fontSize="sm" mb="5px">
-              <BreadcrumbLink href="#" color={secondaryText}>
-                Pages
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-
-            <BreadcrumbItem color={secondaryText} fontSize="sm">
-              <BreadcrumbLink href="#" color={secondaryText}>
-                {brandText}
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-          </Breadcrumb>
-          {/* Here we create navbar brand, based on route name */}
           <Link
             color={mainText}
             href="#"
             bg="inherit"
             borderRadius="inherit"
-            fontWeight="bold"
+            fontWeight="900px"
             fontSize="34px"
+            fontStyle={'oblique'}
             p="0px"
             _hover={{ color: { mainText } }}
             _active={{
@@ -145,9 +127,6 @@ export default function AdminNavbar(props: {
             {brandText}
           </Link>
         </Box>
-        {/* <Box ms="auto" w={{ sm: '100%', md: 'unset' }}>
-          <AdminNavbarLinks setApiKey={setApiKey} secondary={props.secondary} />
-        </Box> */}
       </Flex>
     </Box>
   );
