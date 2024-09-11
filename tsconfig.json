@@ -14,7 +14,8 @@
     "noEmit": true,
     "jsx": "preserve",
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    // Remove the 'moduleResolution' option or set it to 'NodeNext'
+    "moduleResolution": "NodeNext",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "incremental": true,
