@@ -21,7 +21,8 @@ import {
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { MdAutoAwesome, MdBolt, MdEdit, MdPerson } from 'react-icons/md';
-import Bg from '../public/img/chat/bg-image.png';
+// import Bg from '../public/img/chat/bg-image-2.png';
+import logo2 from '../public/img/chat/Logo-2.png';
 
 export default function Chat(props: { apiKeyApp: string }) {
   // Input States
@@ -218,11 +219,12 @@ export default function Chat(props: { apiKeyApp: string }) {
       pt={{ base: '70px', md: '0px' }}
       direction="column"
       position="relative"
+      h={{ base: '85vh', '2xl': '85vh' }}
     >
       <Img
-        src={Bg.src}
+        src={logo2.src}
         position={'absolute'}
-        w="350px"
+        w="700px"
         left="50%"
         top="50%"
         transform={'translate(-50%, -50%)'}
@@ -231,124 +233,23 @@ export default function Chat(props: { apiKeyApp: string }) {
         direction="column"
         mx="auto"
         w={{ base: '100%', md: '100%', xl: '100%' }}
-        minH={{ base: '75vh', '2xl': '85vh' }}
+        minH={{ base: '70vh', '2xl': '85vh' }}
         maxW="1000px"
+        pt="75px"
+        gap="10px"
+        height="100%"
+        justifyContent={outputCode ? "space-between" : "flex-end"}
       >
-        {/* Model Change */}
-        <Flex direction={'column'} w="100%" mb={outputCode ? '20px' : 'auto'}>
-          {/* <Flex
-            mx="auto"
-            zIndex="2"
-            w="max-content"
-            mb="20px"
-            borderRadius="60px"
-          >
-            <Flex
-              cursor={'pointer'}
-              transition="0.3s"
-              justify={'center'}
-              align="center"
-              bg={model === 'gpt-4o' ? buttonBg : 'transparent'}
-              w="174px"
-              h="70px"
-              boxShadow={model === 'gpt-4o' ? buttonShadow : 'none'}
-              borderRadius="14px"
-              color={textColor}
-              fontSize="18px"
-              fontWeight={'700'}
-              onClick={() => setModel('gpt-4o')}
-            >
-              <Flex
-                borderRadius="full"
-                justify="center"
-                align="center"
-                bg={bgIcon}
-                me="10px"
-                h="39px"
-                w="39px"
-              >
-                <Icon
-                  as={MdAutoAwesome}
-                  width="20px"
-                  height="20px"
-                  color={iconColor}
-                />
-              </Flex>
-              GPT-4o
-            </Flex>
-            <Flex
-              cursor={'pointer'}
-              transition="0.3s"
-              justify={'center'}
-              align="center"
-              bg={model === 'gpt-3.5-turbo' ? buttonBg : 'transparent'}
-              w="164px"
-              h="70px"
-              boxShadow={model === 'gpt-3.5-turbo' ? buttonShadow : 'none'}
-              borderRadius="14px"
-              color={textColor}
-              fontSize="18px"
-              fontWeight={'700'}
-              onClick={() => setModel('gpt-3.5-turbo')}
-            >
-              <Flex
-                borderRadius="full"
-                justify="center"
-                align="center"
-                bg={bgIcon}
-                me="10px"
-                h="39px"
-                w="39px"
-              >
-                <Icon
-                  as={MdBolt}
-                  width="20px"
-                  height="20px"
-                  color={iconColor}
-                />
-              </Flex>
-              GPT-3.5
-            </Flex>
-          </Flex>
-
-          <Accordion color={gray} allowToggle w="100%" my="0px" mx="auto">
-            <AccordionItem border="none">
-              <AccordionButton
-                borderBottom="0px solid"
-                maxW="max-content"
-                mx="auto"
-                _hover={{ border: '0px solid', bg: 'none' }}
-                _focus={{ border: '0px solid', bg: 'none' }}
-              >
-                <Box flex="1" textAlign="left">
-                  <Text color={gray} fontWeight="500" fontSize="sm">
-                    No plugins added
-                  </Text>
-                </Box>
-                <AccordionIcon color={gray} />
-              </AccordionButton>
-              <AccordionPanel mx="auto" w="max-content" p="0px 0px 10px 0px">
-                <Text
-                  color={gray}
-                  fontWeight="500"
-                  fontSize="sm"
-                  textAlign={'center'}
-                >
-                  This is a cool text example.
-                </Text>
-              </AccordionPanel>
-            </AccordionItem>
-          </Accordion> */}
-        </Flex>
         {/* Main Box */}
         <Flex
           direction="column"
           w="100%"
           mx="auto"
+          p="20px"
+          width="95%"
           display={outputCode ? 'flex' : 'none'}
-          mb={'auto'}
         >
-          <Flex w="100%" align={'center'} mb="10px">
+          <Flex align={'center'} mb="10px">
             <Flex
               borderRadius="full"
               justify="center"
@@ -373,11 +274,12 @@ export default function Chat(props: { apiKeyApp: string }) {
               border="1px solid"
               borderColor={borderColor}
               borderRadius="14px"
-              w="100%"
+              w="93%"
               zIndex={'2'}
             >
               <Text
                 color={textColor}
+                maxW="-webkit-fill-available"
                 fontWeight="600"
                 fontSize={{ base: 'sm', md: 'md' }}
                 lineHeight={{ base: '24px', md: '26px' }}
@@ -394,7 +296,7 @@ export default function Chat(props: { apiKeyApp: string }) {
               />
             </Flex>
           </Flex>
-          <Flex w="100%">
+          <Flex>
             <Flex
               borderRadius="full"
               justify="center"
@@ -418,7 +320,6 @@ export default function Chat(props: { apiKeyApp: string }) {
         {/* Chat Input */}
         <Flex
           ms={{ base: '0px', xl: '60px' }}
-          mt="20px"
           justifySelf={'flex-end'}
         >
           <Input
@@ -434,7 +335,7 @@ export default function Chat(props: { apiKeyApp: string }) {
             _focus={{ borderColor: 'none' }}
             color={inputColor}
             _placeholder={placeholderColor}
-            placeholder="Type your message here..."
+            placeholder="Escribe tu consulta aquí..."
             onChange={handleChange}
           />
           <Button
@@ -457,31 +358,9 @@ export default function Chat(props: { apiKeyApp: string }) {
             onClick={handleTranslate}
             isLoading={loading ? true : false}
           >
-            Submit
+            Enviar
           </Button>
         </Flex>
-
-        {/* <Flex
-          justify="center"
-          mt="20px"
-          direction={{ base: 'column', md: 'row' }}
-          alignItems="center"
-        >
-          <Text fontSize="xs" textAlign="center" color={gray}>
-            Free Research Preview. ChatGPT may produce inaccurate information
-            about people, places, or facts.
-          </Text>
-          <Link href="https://help.openai.com/en/articles/6825453-chatgpt-release-notes">
-            <Text
-              fontSize="xs"
-              color={textColor}
-              fontWeight="500"
-              textDecoration="underline"
-            >
-              ChatGPT May 12 Version
-            </Text>
-          </Link>
-        </Flex> */}
       </Flex>
     </Flex>
   );
