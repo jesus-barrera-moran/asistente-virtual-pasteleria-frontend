@@ -14,11 +14,13 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
+  const router = useRouter();
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -40,9 +42,14 @@ const Login: React.FC = () => {
         alert('Error al iniciar sesión. Verifica tus credenciales.');
       } else {
         const data = await response.json();
-        localStorage.setItem('token', data.access_token);
+        localStorage.setItem('token', data.token.access_token);
+        localStorage.setItem('id_pateleria', JSON.stringify(data.user.id_pateleria));
+        localStorage.setItem('id_rol', JSON.stringify(data.user.id_rol));
+        localStorage.setItem('usuario', data.user.usuario);
+        localStorage.setItem('nombre', data.user.nombre);
+        localStorage.setItem('apellido', data.user.apellido);
 
-        window.location.href = '/';
+        router.push('/');
       }
     } catch (error) {
       alert('Hubo un problema al conectar con el servidor. Inténtalo de nuevo.');

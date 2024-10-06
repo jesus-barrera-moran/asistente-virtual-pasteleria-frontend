@@ -1,4 +1,5 @@
 'use client';
+import React, { useState, useEffect } from 'react';
 // chakra imports
 import {
   Box,
@@ -19,6 +20,7 @@ import { PropsWithChildren } from 'react';
 import { IRoute } from '@/types/navigation';
 import { FiLogOut } from 'react-icons/fi';
 import { MdOutlineManageAccounts, MdOutlineSettings } from 'react-icons/md';
+import { useRouter } from 'next/navigation'; // Cambiado a next/navigation
 import { HSeparator } from '@/components/separator/Separator';
 
 import logo1 from '../../../../public/img/chat/Logo-1.png';
@@ -45,6 +47,38 @@ function SidebarContent(props: SidebarContent) {
     'none',
   );
   const gray = useColorModeValue('gray.500', 'white');
+  const router = useRouter();
+  const [userFullName, setUserFullName] = useState<string>('');
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      const user_name = localStorage.getItem('nombre') !== 'null' ? localStorage.getItem('nombre') : '';
+      const user_lastname = localStorage.getItem('apellido') !== 'null' ? localStorage.getItem('apellido') : '';
+      const username = localStorage.getItem('usuario') !== 'null' ? localStorage.getItem('usuario') : '';
+
+      setUserFullName(
+        user_name && user_lastname
+          ? `${user_name} ${user_lastname}`
+          : username
+            ? username
+            : 'Desconocido'
+      )
+    }
+  }, [])
+
+  const handleLogout = () => {
+    // Logout
+    localStorage.removeItem('token');
+    localStorage.removeItem('id_pateleria');
+    localStorage.removeItem('id_rol');
+    localStorage.removeItem('usuario');
+    localStorage.removeItem('nombre');
+    localStorage.removeItem('apellido');
+    // Redirect to login
+    router.push('/login');
+  };
+
   // SIDEBAR
   return (
     <Flex
@@ -83,9 +117,9 @@ function SidebarContent(props: SidebarContent) {
         p="14px"
       >
         <Text color={textColor} fontSize="xs" fontWeight="600" me="10px">
-          Linda Castillo
+          {userFullName}
         </Text>
-        <Menu>
+        {/* <Menu>
           <MenuButton
             as={Button}
             variant="transparent"
@@ -125,7 +159,7 @@ function SidebarContent(props: SidebarContent) {
             bg={bgColor}
           >
             <Box mb="30px">
-              <Flex align="center" w="100%" /*cursor={'not-allowed'}*/>
+              <Flex align="center" w="100%">
                 <Icon
                   as={MdOutlineManageAccounts}
                   width="24px"
@@ -149,7 +183,7 @@ function SidebarContent(props: SidebarContent) {
               </Flex>
             </Box>
           </MenuList>
-        </Menu>
+        </Menu> */}
         <Button
           variant="transparent"
           border="1px solid"
@@ -161,6 +195,7 @@ function SidebarContent(props: SidebarContent) {
           minW="34px"
           justifyContent={'center'}
           alignItems="center"
+          onClick={handleLogout}
         >
           <Icon as={FiLogOut} width="16px" height="16px" color="inherit" />
         </Button>

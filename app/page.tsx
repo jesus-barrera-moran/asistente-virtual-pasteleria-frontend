@@ -11,6 +11,7 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { MdAutoAwesome, MdEdit, MdPerson } from 'react-icons/md';
 // import Bg from '../public/img/chat/bg-image-2.png';
 import logo2 from '../public/img/chat/Logo-2.png';
@@ -23,6 +24,7 @@ export default function Chat(props: { apiKeyApp: string }) {
   const [outputCode, setOutputCode] = useState<string>('');
   // Loading state
   const [loading, setLoading] = useState<boolean>(false);
+  const router = useRouter();
 
   // API Key
   // const [apiKey, setApiKey] = useState<string>(apiKeyApp);
@@ -68,7 +70,7 @@ export default function Chat(props: { apiKeyApp: string }) {
         setLoading(false);
         alert('La sesión ha expirado, por favor inicia sesión nuevamente');
         localStorage.removeItem('token');
-        window.location.href = '/login';
+        router.push('/login');
         return;
       }
 

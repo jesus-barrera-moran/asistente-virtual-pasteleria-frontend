@@ -20,38 +20,55 @@ import { useState } from 'react';
 
 const PastryForm: React.FC = () => {
   const [name, setName] = useState<string>('');
-  const [ownerId, setOwnerId] = useState<number>(0);
   const [email, setEmail] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
   const [address, setAddress] = useState<string>('');
   const [city, setCity] = useState<string>('');
   const [postalCode, setPostalCode] = useState<number>(0);
   const [websiteUrl, setWebsiteUrl] = useState<string>('');
-  const [dateRegistered, setDateRegistered] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [menuLogo, setMenuLogo] = useState<any>();
   const [backgroudLogo, setBackgroundLogo] = useState<any>();
 
   const handleSubmit = async () => {
     setLoading(true);
-    
+  
+    // Crear el objeto con los datos que se enviarán en la solicitud
     const newPastry = {
-      name,
-      owner_id: ownerId,
+      nombre: name, // 'nombre' debe coincidir con el parámetro del endpoint
       email,
-      phone,
-      address,
-      city,
-      postal_code: postalCode,
-      website_url: websiteUrl,
-      date_registered: new Date(dateRegistered),
+      telefono: String(phone), // 'telefono' para coincidir con el parámetro del endpoint
+      direccion: address, // 'direccion' para coincidir con el parámetro del endpoint
+      ciudad: city, // 'ciudad' para coincidir con el parámetro del endpoint
+      codigo_postal: postalCode, // 'codigo_postal' para coincidir con el parámetro del endpoint
+      url_website: websiteUrl, // 'url_website' para coincidir con el parámetro del endpoint
     };
-
-    // Aquí podrías manejar la lógica para enviar estos datos a tu backend
-    console.log(newPastry);
-
-    setLoading(false);
-  };
+  
+    try {
+      // Llamar al endpoint con fetch
+      const response = await fetch('http://localhost:8000/pastelerias', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json', // El contenido es JSON
+        },
+        body: JSON.stringify(newPastry), // Convertimos el objeto a JSON
+      });
+  
+      // Manejar la respuesta
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Pastelería creada con éxito:', data);
+        // Aquí puedes agregar cualquier lógica adicional que quieras ejecutar tras el éxito
+      } else {
+        console.error('Error al crear la pastelería:', response.status);
+        // Aquí puedes manejar errores específicos
+      }
+    } catch (error) {
+      console.error('Error al realizar la solicitud:', error);
+    } finally {
+      setLoading(false); // Parar el estado de carga una vez finalizado
+    }
+  };  
 
   return (
     <Flex minH="100vh" align="center" justify="center" bg={useColorModeValue('gray.50', 'gray.800')}>
