@@ -13,6 +13,7 @@ import {
   Tr,
   Select,
   Switch,
+  Spinner,
   useToast,
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
@@ -42,14 +43,12 @@ const EmployeesManager: React.FC = () => {
         const id_pasteleria = localStorage.getItem('id_pasteleria');
         const usuario = localStorage.getItem('usuario');
 
-        const response = await fetch(`http://localhost:8000/pastelerias/${id_pasteleria}/usuarios`,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await fetch(`http://localhost:8000/pastelerias/${id_pasteleria}/usuarios`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
 
         if (response.status === 401) {
           setLoading(false);
@@ -102,7 +101,11 @@ const EmployeesManager: React.FC = () => {
   };
 
   if (loading) {
-    return <p>Cargando usuarios...</p>;
+    return (
+      <Flex justify="center" align="center" height="100vh">
+        <Spinner size="xl" thickness="4px" speed="0.65s" color="teal.500" />
+      </Flex>
+    );
   }
 
   if (error) {
@@ -114,47 +117,50 @@ const EmployeesManager: React.FC = () => {
       <Stack spacing={8} mx="auto" w="100%" bg="none" maxW="1000px" pt={16} px={6}>
         <Box w="100%" maxW="1000px" mx="auto" p={6} bg="none" rounded="lg">
           <Stack align="center">
-            {users.length > 0
-              ? <Table variant="simple">
-                  <Thead>
-                    <Tr>
-                      <Th>Nombre de Usuario</Th>
-                      <Th>Correo Electrónico</Th>
-                      <Th>Rol</Th>
-                      <Th>Estado</Th>
-                      <Th>Acciones</Th>
+            {users.length > 0 ? (
+              <Table variant="simple">
+                <Thead>
+                  <Tr>
+                    <Th>Nombre de Usuario</Th>
+                    <Th>Correo Electrónico</Th>
+                    <Th>Rol</Th>
+                    <Th>Estado</Th>
+                    <Th>Acciones</Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {users.map((user) => (
+                    <Tr key={user.id}>
+                      <Td>{user.username}</Td>
+                      <Td>{user.email}</Td>
+                      <Td>
+                        <Select
+                          value={user.role}
+                          onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                        >
+                          <option value="Admin">Administrador</option>
+                          <option value="Employee">Empleado</option>
+                        </Select>
+                      </Td>
+                      <Td>
+                        <Switch
+                          colorScheme="teal"
+                          isChecked={user.enabled}
+                          onChange={() => handleToggleEnabled(user.id)}
+                        />
+                      </Td>
+                      <Td>
+                        <Button colorScheme="blue" size="sm">
+                          Guardar Cambios
+                        </Button>
+                      </Td>
                     </Tr>
-                  </Thead>
-                  <Tbody>
-                    {users.map((user) => (
-                      <Tr key={user.id}>
-                        <Td>{user.username}</Td>
-                        <Td>{user.email}</Td>
-                        <Td>
-                          <Select
-                            value={user.role}
-                            onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                          >
-                            <option value="Admin">Administrador</option>
-                            <option value="Employee">Empleado</option>
-                          </Select>
-                        </Td>
-                        <Td>
-                          <Switch
-                            colorScheme="teal"
-                            isChecked={user.enabled}
-                            onChange={() => handleToggleEnabled(user.id)}
-                          />
-                        </Td>
-                        <Td>
-                          <Button colorScheme="blue" size="sm">
-                            Guardar Cambios
-                          </Button>
-                        </Td>
-                      </Tr>
-                    ))}
-                  </Tbody>
-                </Table> : <p>No hay usuarios registrados</p>}
+                  ))}
+                </Tbody>
+              </Table>
+            ) : (
+              <p>No hay usuarios registrados</p>
+            )}
             <Link href="/admin/employee" passHref>
               <Button as="a" colorScheme="blue" size="sm" mt="10px">
                 Nuevo Empleado +
