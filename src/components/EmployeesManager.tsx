@@ -4,23 +4,20 @@ import {
   Box,
   Button,
   Flex,
-  FormControl,
-  FormLabel,
-  Heading,
-  Select,
-  Switch,
+  Stack,
   Table,
   Tbody,
   Td,
   Th,
   Thead,
   Tr,
-  useColorModeValue,
-  Stack,
-  Text,
+  Select,
+  Switch,
+  useToast,
 } from '@chakra-ui/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 type User = {
   id: number;
@@ -30,14 +27,63 @@ type User = {
   enabled: boolean;
 };
 
-const initialUsers: User[] = [
-  { id: 1, username: 'johndoe', email: 'johndoe@example.com', role: 'Admin', enabled: true },
-  { id: 2, username: 'janedoe', email: 'janedoe@example.com', role: 'User', enabled: false },
-  { id: 3, username: 'bobsponge', email: 'bobsponge@example.com', role: 'User', enabled: true },
-];
-
 const EmployeesManager: React.FC = () => {
-  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem('token');
+        const id_pasteleria = localStorage.getItem('id_pasteleria');
+        const usuario = localStorage.getItem('usuario');
+
+        const response = await fetch(`http://localhost:8000/pastelerias/${id_pasteleria}/usuarios`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.status === 401) {
+          setLoading(false);
+          alert('La sesión ha expirado, por favor inicia sesión nuevamente');
+          localStorage.removeItem('token');
+          router.push('/login');
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error('Error al cargar los usuarios');
+        }
+
+        const data = await response.json();
+
+        const filteredData = data.filter((user: User) => user.username !== usuario);
+
+        setUsers(filteredData);
+      } catch (err) {
+        setError('Error al cargar los usuarios');
+        toast({
+          title: 'Error',
+          description: 'No se pudieron cargar los usuarios.',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, [toast]);
 
   const handleToggleEnabled = (id: number) => {
     setUsers((prevUsers) =>
@@ -55,51 +101,60 @@ const EmployeesManager: React.FC = () => {
     );
   };
 
+  if (loading) {
+    return <p>Cargando usuarios...</p>;
+  }
+
+  if (error) {
+    return <p>{error}</p>;
+  }
+
   return (
     <Flex align="center" justify="center" bg="none">
       <Stack spacing={8} mx="auto" w="100%" bg="none" maxW="1000px" pt={16} px={6}>
-        <Box w="100%" maxW="1000px" mx="auto" p={6} bg="none" /*boxShadow="lg"*/ rounded="lg">
+        <Box w="100%" maxW="1000px" mx="auto" p={6} bg="none" rounded="lg">
           <Stack align="center">
-            <Table variant="simple">
-              <Thead>
-                  <Tr>
-                  <Th>Nombre de Usuario</Th>
-                  <Th>Correo Electrónico</Th>
-                  <Th>Rol</Th>
-                  <Th>Estado</Th>
-                  <Th>Acciones</Th>
-                  </Tr>
-              </Thead>
-              <Tbody>
-                  {users.map((user) => (
-                  <Tr key={user.id}>
-                      <Td>{user.username}</Td>
-                      <Td>{user.email}</Td>
-                      <Td>
-                      <Select
-                          value={user.role}
-                          onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                      >
-                          <option value="Admin">Administrador</option>
-                          <option value="Employee">Empleado</option>
-                      </Select>
-                      </Td>
-                      <Td>
-                      <Switch
-                          colorScheme="teal"
-                          isChecked={user.enabled}
-                          onChange={() => handleToggleEnabled(user.id)}
-                      />
-                      </Td>
-                      <Td>
-                      <Button colorScheme="blue" size="sm">
-                          Guardar Cambios
-                      </Button>
-                      </Td>
-                  </Tr>
-                  ))}
-              </Tbody>
-            </Table>
+            {users.length > 0
+              ? <Table variant="simple">
+                  <Thead>
+                    <Tr>
+                      <Th>Nombre de Usuario</Th>
+                      <Th>Correo Electrónico</Th>
+                      <Th>Rol</Th>
+                      <Th>Estado</Th>
+                      <Th>Acciones</Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {users.map((user) => (
+                      <Tr key={user.id}>
+                        <Td>{user.username}</Td>
+                        <Td>{user.email}</Td>
+                        <Td>
+                          <Select
+                            value={user.role}
+                            onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                          >
+                            <option value="Admin">Administrador</option>
+                            <option value="Employee">Empleado</option>
+                          </Select>
+                        </Td>
+                        <Td>
+                          <Switch
+                            colorScheme="teal"
+                            isChecked={user.enabled}
+                            onChange={() => handleToggleEnabled(user.id)}
+                          />
+                        </Td>
+                        <Td>
+                          <Button colorScheme="blue" size="sm">
+                            Guardar Cambios
+                          </Button>
+                        </Td>
+                      </Tr>
+                    ))}
+                  </Tbody>
+                </Table> : <p>No hay usuarios registrados</p>}
             <Link href="/admin/employee" passHref>
               <Button as="a" colorScheme="blue" size="sm" mt="10px">
                 Nuevo Empleado +

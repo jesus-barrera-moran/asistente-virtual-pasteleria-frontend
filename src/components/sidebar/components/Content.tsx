@@ -70,7 +70,7 @@ function SidebarContent(props: SidebarContent) {
   const handleLogout = () => {
     // Logout
     localStorage.removeItem('token');
-    localStorage.removeItem('id_pateleria');
+    localStorage.removeItem('id_pasteleria');
     localStorage.removeItem('id_rol');
     localStorage.removeItem('usuario');
     localStorage.removeItem('nombre');

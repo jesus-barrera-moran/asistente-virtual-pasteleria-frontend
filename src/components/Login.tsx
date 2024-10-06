@@ -43,7 +43,7 @@ const Login: React.FC = () => {
       } else {
         const data = await response.json();
         localStorage.setItem('token', data.token.access_token);
-        localStorage.setItem('id_pateleria', JSON.stringify(data.user.id_pateleria));
+        localStorage.setItem('id_pasteleria', data.user.id_pasteleria);
         localStorage.setItem('id_rol', JSON.stringify(data.user.id_rol));
         localStorage.setItem('usuario', data.user.usuario);
         localStorage.setItem('nombre', data.user.nombre);
