@@ -16,16 +16,39 @@ import {
 import { useState } from 'react';
 
 const Login: React.FC = () => {
-  const [email, setEmail] = useState<string>('');
+  const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
 
   const handleSubmit = async () => {
     setLoading(true);
-    // Aquí puedes manejar la lógica de autenticación
-    console.log({ email, password });
-    // Ejemplo de redirección tras un inicio de sesión exitoso
-    setLoading(false);
+  
+    try {
+      const formData = new URLSearchParams();
+      formData.append('username', username);  // Cambia 'email' por 'username'
+      formData.append('password', password);
+
+      const response = await fetch('http://localhost:8000/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData.toString(),
+      });
+
+      if (!response.ok) {
+        alert('Error al iniciar sesión. Verifica tus credenciales.');
+      } else {
+        const data = await response.json();
+        localStorage.setItem('token', data.access_token);
+
+        window.location.href = '/';
+      }
+    } catch (error) {
+      alert('Hubo un problema al conectar con el servidor. Inténtalo de nuevo.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -39,12 +62,12 @@ const Login: React.FC = () => {
         </Stack>
         <Box rounded="lg" bg={useColorModeValue('white', 'gray.700')} boxShadow="lg" p={8}>
           <Stack spacing={4}>
-            <FormControl id="email">
+            <FormControl id="username">
               <FormLabel>Usuario</FormLabel>
               <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 placeholder="Ingresa tu usuario"
               />
             </FormControl>

@@ -13,7 +13,7 @@ import {
 import { useEffect, useState } from 'react';
 import { MdAutoAwesome, MdEdit, MdPerson } from 'react-icons/md';
 // import Bg from '../public/img/chat/bg-image-2.png';
-import logo2 from '../public/img/chat/Logo-2.png';
+import logo2 from '../../public/img/chat/Logo-2.png';
 
 export default function Chat(props: { apiKeyApp: string }) {
   // Input States
@@ -222,7 +222,7 @@ export default function Chat(props: { apiKeyApp: string }) {
             _focus={{ borderColor: 'none' }}
             color={inputColor}
             _placeholder={placeholderColor}
-            placeholder="Escribe tu consulta aquí..."
+            placeholder="Eres un cliente"
             onChange={handleChange}
             value={inputCode}
           />
