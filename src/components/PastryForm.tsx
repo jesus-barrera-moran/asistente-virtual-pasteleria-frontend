@@ -66,8 +66,8 @@ const PastryForm: React.FC = () => {
       if (response.ok) {
         const data = await response.json();
         
-        setAdminsUser(data.propietario.usuario);
-        setAdminPassword(data.propietario.clave_env);
+        setAdminsUser(data.usuario);
+        setAdminPassword(data.clave);
 
         setShowPassword(true);
       } else {
