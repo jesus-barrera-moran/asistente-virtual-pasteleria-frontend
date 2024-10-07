@@ -12,7 +12,7 @@ import {
   Stack,
   Text,
   Spinner,
-  useColorModeValue,
+  Checkbox,
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
@@ -22,18 +22,22 @@ const EmployeeForm: React.FC = () => {
   const [email, setEmail] = useState<string>(''); 
   const [firstName, setFirstName] = useState<string>(''); 
   const [lastName, setLastName] = useState<string>(''); 
+  const [currentPassword, setCurrentPassword] = useState<string>(''); // Para actualización de contraseña
   const [password, setPassword] = useState<string>(''); 
   const [confirmPassword, setConfirmPassword] = useState<string>(''); 
-  const [error, setError] = useState<string | null>(null);
+  const [updatePasswordMode, setUpdatePasswordMode] = useState<boolean>(false); // Modo para actualización de contraseña
+  const [isEditing, setIsEditing] = useState<boolean>(false); // Modo para edición de perfil
   const [loading, setLoading] = useState<boolean>(false); 
-  const [isEditing, setIsEditing] = useState<boolean>(false); // Estado para alternar entre vista y edición
-  const [initialData, setInitialData] = useState<any>({}); // Estado para guardar los datos originales
+  const [error, setError] = useState<string | null>(null);
+  const [initialData, setInitialData] = useState<any>({}); 
   const router = useRouter();
   const pathname = usePathname();
 
+  // Efecto para manejar el modo de creación o perfil
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (pathname === '/profile') {
+    if (pathname === '/profile') {
+      // Si estamos en el perfil, cargamos los datos del usuario actual
+      const fetchUserProfile = async () => {
         setLoading(true);
         try {
           const token = localStorage.getItem('token');
@@ -57,7 +61,7 @@ const EmployeeForm: React.FC = () => {
             setEmail(userData.email || '');
             setFirstName(userData.nombre || '');
             setLastName(userData.apellido || '');
-            setInitialData({ // Guardamos los datos iniciales
+            setInitialData({
               usuario: userData.usuario || '',
               email: userData.email || '',
               nombre: userData.nombre || '',
@@ -71,14 +75,14 @@ const EmployeeForm: React.FC = () => {
         } finally {
           setLoading(false);
         }
-      }
-    };
+      };
 
-    fetchUserProfile();
+      fetchUserProfile();
+    }
   }, [pathname]);
 
   const handleSubmit = async () => {
-    if (password !== confirmPassword) {
+    if (updatePasswordMode && password !== confirmPassword) {
       setError('Las contraseñas no coinciden');
       return;
     }
@@ -86,27 +90,26 @@ const EmployeeForm: React.FC = () => {
     setLoading(true);
     setError(null);
 
-    const updatedUser = {
+    const userPayload = {
       username,
-      password,
       email,
       first_name: firstName,
       last_name: lastName,
+      ...(updatePasswordMode && { current_password: currentPassword, password }), // Solo incluir la contraseña si estamos actualizando la contraseña
     };
 
     try {
       const token = localStorage.getItem('token');
+      const endpoint = pathname === '/profile' ? '/users/me' : '/users';
+      const method = pathname === '/profile' ? 'PUT' : 'POST'; // PUT si estamos en perfil, POST si estamos creando un usuario
 
-      const response = await fetch('http://localhost:8000/users/me', {
-        method: 'PUT',
+      const response = await fetch(`http://localhost:8000${endpoint}`, {
+        method,
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded', 
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: new URLSearchParams({
-          username: updatedUser.username,
-          password: updatedUser.password,
-        }).toString(),
+        body: JSON.stringify(userPayload),
       });
 
       if (!response.ok) {
@@ -116,30 +119,38 @@ const EmployeeForm: React.FC = () => {
         } else if (response.status === 500) {
           setError('Error interno del servidor.');
         } else {
-          setError('Error desconocido al actualizar el perfil.');
+          setError('Error desconocido.');
         }
         return;
       }
 
-      setIsEditing(false); // Regresamos al modo de solo lectura
+      if (pathname === '/profile') {
+        setIsEditing(false); // Volver al modo de solo lectura
+        setUpdatePasswordMode(false); // Salir del modo de actualización de contraseña
+      } else {
+        router.push('/admin/employees'); // Redirigir después de crear el usuario
+      }
     } catch (error) {
-      setError('Hubo un problema al actualizar el perfil. Por favor, intenta nuevamente.');
+      setError('Hubo un problema al procesar la solicitud. Por favor, intenta nuevamente.');
     } finally {
       setLoading(false);
     }
   };
 
   const toggleEdit = () => {
-    setIsEditing((prevState) => !prevState); // Alternar entre modo de vista y edición
+    setIsEditing(true); // Permitir la edición de perfil
   };
 
   const handleCancel = () => {
-    // Restauramos los valores originales
     setUsername(initialData.usuario);
     setEmail(initialData.email);
     setFirstName(initialData.nombre);
     setLastName(initialData.apellido);
-    setIsEditing(false); // Volvemos al modo de solo lectura
+    setIsEditing(false); // Volver a solo lectura
+    setUpdatePasswordMode(false); // Cancelar la actualización de contraseña
+    setCurrentPassword('');
+    setPassword('');
+    setConfirmPassword('');
   };
 
   // Si está cargando los datos del perfil, mostramos el spinner
@@ -155,73 +166,132 @@ const EmployeeForm: React.FC = () => {
     <Flex align="center" justify="center" bg="none">
       <Stack spacing={8} mx="auto" maxW="lg" bg="none" pt={16} px={6}>
         <Box rounded="lg" bg="none" p={8}>
-          {isEditing ? (
+          {/* Modo perfil: solo lectura con opciones de edición */}
+          {pathname === '/profile' && !isEditing && !updatePasswordMode ? (
             <Stack spacing={4}>
-              <Grid templateColumns="repeat(2, 1fr)" gap={4}>
-                <GridItem>
-                  <FormControl id="firstName">
-                    <FormLabel>Nombre</FormLabel>
+              <Text><strong>Nombre:</strong> {firstName}</Text>
+              <Text><strong>Apellido:</strong> {lastName}</Text>
+              <Text><strong>Nombre de Usuario:</strong> {username}</Text>
+              <Text><strong>Email:</strong> {email}</Text>
+              <Button onClick={toggleEdit} bg="blue.400" color="white" _hover={{ bg: 'blue.500' }}>
+                Editar Perfil
+              </Button>
+              <Button onClick={() => setUpdatePasswordMode(true)} bg="gray.400" color="white" _hover={{ bg: 'gray.500' }}>
+                Actualizar Contraseña
+              </Button>
+            </Stack>
+          ) : (
+            <Stack spacing={4}>
+              {/* Modo de edición de perfil o creación de usuario */}
+              {!updatePasswordMode && (
+                <>
+                  <Grid templateColumns="repeat(2, 1fr)" gap={4}>
+                    <GridItem>
+                      <FormControl id="firstName">
+                        <FormLabel>Nombre</FormLabel>
+                        <Input
+                          type="text"
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                          placeholder="Nombre"
+                        />
+                      </FormControl>
+                    </GridItem>
+
+                    <GridItem>
+                      <FormControl id="lastName">
+                        <FormLabel>Apellido</FormLabel>
+                        <Input
+                          type="text"
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
+                          placeholder="Apellido"
+                        />
+                      </FormControl>
+                    </GridItem>
+                  </Grid>
+
+                  <FormControl id="username">
+                    <FormLabel>Nombre de Usuario</FormLabel>
                     <Input
                       type="text"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      placeholder="Nombre"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="Nombre de usuario"
                     />
                   </FormControl>
-                </GridItem>
 
-                <GridItem>
-                  <FormControl id="lastName">
-                    <FormLabel>Apellido</FormLabel>
+                  <FormControl id="email">
+                    <FormLabel>Correo Electrónico</FormLabel>
                     <Input
-                      type="text"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      placeholder="Apellido"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Correo electrónico"
                     />
                   </FormControl>
-                </GridItem>
-              </Grid>
 
-              <FormControl id="username">
-                <FormLabel>Nombre de Usuario</FormLabel>
-                <Input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Nombre de usuario"
-                />
-              </FormControl>
+                  {/* Campos de contraseña solo visibles en modo de creación de usuario */}
+                  {pathname === '/admin/employee' && (
+                    <>
+                      <FormControl id="password">
+                        <FormLabel>Contraseña</FormLabel>
+                        <Input
+                          type="password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="Ingresa una contraseña"
+                        />
+                      </FormControl>
 
-              <FormControl id="email">
-                <FormLabel>Correo Electrónico</FormLabel>
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Correo electrónico"
-                />
-              </FormControl>
+                      <FormControl id="confirmPassword">
+                        <FormLabel>Confirmar Contraseña</FormLabel>
+                        <Input
+                          type="password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="Confirma la contraseña"
+                        />
+                      </FormControl>
+                    </>
+                  )}
+                </>
+              )}
 
-              <FormControl id="password">
-                <FormLabel>Contraseña</FormLabel>
-                <Input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Crea una contraseña"
-                />
-              </FormControl>
+              {/* Modo de actualización de contraseña */}
+              {updatePasswordMode && (
+                <>
+                  <FormControl id="currentPassword">
+                    <FormLabel>Contraseña Actual</FormLabel>
+                    <Input
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      placeholder="Ingresa tu contraseña actual"
+                    />
+                  </FormControl>
 
-              <FormControl id="confirmPassword">
-                <FormLabel>Confirmar Contraseña</FormLabel>
-                <Input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirma la contraseña"
-                />
-              </FormControl>
+                  <FormControl id="password">
+                    <FormLabel>Nueva Contraseña</FormLabel>
+                    <Input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Ingresa una nueva contraseña"
+                    />
+                  </FormControl>
+
+                  <FormControl id="confirmPassword">
+                    <FormLabel>Confirmar Nueva Contraseña</FormLabel>
+                    <Input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Confirma la nueva contraseña"
+                    />
+                  </FormControl>
+                </>
+              )}
 
               {error && (
                 <Text color="red.500" fontSize="sm">
@@ -237,7 +307,7 @@ const EmployeeForm: React.FC = () => {
                   onClick={handleSubmit}
                   isLoading={loading}
                 >
-                  Guardar Cambios
+                  {pathname === '/profile' ? (updatePasswordMode ? 'Actualizar Contraseña' : 'Guardar Cambios') : 'Crear Usuario'}
                 </Button>
                 <Button
                   bg="red.400"
@@ -248,16 +318,6 @@ const EmployeeForm: React.FC = () => {
                   Cancelar
                 </Button>
               </Stack>
-            </Stack>
-          ) : (
-            <Stack spacing={4}>
-              <Text><strong>Nombre:</strong> {firstName}</Text>
-              <Text><strong>Apellido:</strong> {lastName}</Text>
-              <Text><strong>Nombre de Usuario:</strong> {username}</Text>
-              <Text><strong>Email:</strong> {email}</Text>
-              <Button onClick={toggleEdit} bg="blue.400" color="white" _hover={{ bg: 'blue.500' }}>
-                Editar Perfil
-              </Button>
             </Stack>
           )}
         </Box>
