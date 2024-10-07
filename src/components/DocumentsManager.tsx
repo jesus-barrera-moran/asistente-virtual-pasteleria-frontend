@@ -9,16 +9,16 @@ import {
   Input,
   Stack,
   Textarea,
-  Heading,
-  useColorModeValue,
   Select,
   Text,
   HStack,
   VisuallyHidden,
   IconButton,
+  useToast,
 } from '@chakra-ui/react';
 import { FiUpload, FiTrash } from 'react-icons/fi';
 import { useState } from 'react';
+import mammoth from 'mammoth'; // Para manejar archivos .docx
 
 type Document = {
   id: number;
@@ -37,6 +37,17 @@ const DocumentsManager: React.FC = () => {
   const [documents, setDocuments] = useState<Document[]>(initialDocuments);
   const [selectedDocumentId, setSelectedDocumentId] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const toast = useToast();
+
+  // Tipos de archivo permitidos (MIME types)
+  const validFileTypes = [
+    'text/plain', // .txt
+    'text/csv', // .csv
+    'text/markdown', // .md
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+  ];
+
+  const maxFileSize = 2 * 1024 * 1024; // Tamaño máximo del archivo en bytes (2MB)
 
   const handleDocumentChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedId = parseInt(event.target.value, 10);
@@ -51,12 +62,83 @@ const DocumentsManager: React.FC = () => {
     );
   };
 
-  const handleFileChange = (file: File | null) => {
-    setDocuments((prevDocuments) =>
-      prevDocuments.map((doc) =>
-        doc.id === selectedDocumentId ? { ...doc, file } : doc
-      )
-    );
+  const handleFileChange = async (file: File | null) => {
+    if (file && selectedDocumentId !== null) {
+      // Verificar el tipo MIME del archivo
+      if (!validFileTypes.includes(file.type)) {
+        toast({
+          title: 'Tipo de archivo no válido',
+          description: `Por favor, selecciona un archivo de tipo válido. Los tipos permitidos son: ${validFileTypes.join(', ')}`,
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }
+
+      // Verificar el tamaño del archivo
+      if (file.size > maxFileSize) {
+        toast({
+          title: 'Archivo demasiado grande',
+          description: `El archivo excede el tamaño máximo permitido de 2MB.`,
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }
+
+      const reader = new FileReader();
+
+      // Si el archivo es un archivo de texto (.txt, .csv o .md)
+      if (file.type === 'text/plain' || file.type === 'text/csv' || file.type === 'text/markdown') {
+        reader.onload = (event) => {
+          const fileContent = event.target?.result as string;
+
+          // Actualizamos el contenido del documento con el contenido del archivo cargado
+          setDocuments((prevDocuments) =>
+            prevDocuments.map((doc) =>
+              doc.id === selectedDocumentId ? { ...doc, content: fileContent, file } : doc
+            )
+          );
+        };
+        reader.readAsText(file); // Leemos el archivo como texto
+      }
+
+      // Si el archivo es Word (.docx)
+      else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+        reader.onload = (event) => {
+          const arrayBuffer = event.target?.result;
+
+          // Usar Mammoth.js para extraer texto del archivo .docx
+          mammoth.extractRawText({ arrayBuffer })
+            .then((result) => {
+              const extractedText = result.value; // Texto extraído
+
+              // Actualizamos el contenido del documento con el texto extraído
+              setDocuments((prevDocuments) =>
+                prevDocuments.map((doc) =>
+                  doc.id === selectedDocumentId ? { ...doc, content: extractedText, file } : doc
+                )
+              );
+            })
+            .catch((err) => {
+              toast({
+                title: 'Error al leer archivo .docx',
+                description: 'Ocurrió un error al leer el archivo Word.',
+                status: 'error',
+                duration: 5000,
+                isClosable: true,
+              });
+            });
+        };
+        reader.readAsArrayBuffer(file); // Leemos el archivo .docx como ArrayBuffer
+      }
+
+      reader.onerror = () => {
+        console.error('Error al leer el archivo');
+      };
+    }
   };
 
   const handleRemoveFile = () => {
@@ -87,7 +169,7 @@ const DocumentsManager: React.FC = () => {
   return (
     <Flex align="center" justify="center" bg="none">
       <Stack spacing={8} mx="auto" w="100%" bg="none" pt={16} px={6}>
-        <Box w="100%" maxW="1000px" mx="auto" p={6} bg="none" /*boxShadow="lg"*/ rounded="lg">
+        <Box w="100%" maxW="1000px" mx="auto" p={6} bg="none" rounded="lg">
           <FormControl id="select-document">
             <FormLabel>Seleccionar Documento</FormLabel>
             <Select placeholder="Selecciona un documento" onChange={handleDocumentChange}>
@@ -123,6 +205,7 @@ const DocumentsManager: React.FC = () => {
                     <VisuallyHidden>
                       <Input
                         type="file"
+                        accept=".txt,.csv,.md,.docx"  // Especificar extensiones permitidas
                         id={`file-input-${selectedDocument.id}`}
                         onChange={(e) => handleFileChange(e.target.files ? e.target.files[0] : null)}
                       />
@@ -172,5 +255,3 @@ const DocumentsManager: React.FC = () => {
 };
 
 export default DocumentsManager;
-
-

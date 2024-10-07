@@ -278,7 +278,7 @@ const DatabaseConnectionsManager: React.FC = () => {
                   <Button mt={6} colorScheme="blue" onClick={() => setIsEditing(true)}>
                     Editar
                   </Button>
-                  <Button mt={6} colorScheme="gray" onClick={() => setUpdatePasswordMode(true)}>
+                  <Button mt={6} bg="gray.400" color="white" _hover={{ bg: 'gray.500' }} onClick={() => setUpdatePasswordMode(true)}>
                     Actualizar Clave
                   </Button>
                 </>
