@@ -15,6 +15,7 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 const EmployeeForm: React.FC = () => {
   const [username, setUsername] = useState<string>('');
@@ -25,28 +26,61 @@ const EmployeeForm: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const router = useRouter();
 
   const handleSubmit = async () => {
     if (password !== confirmPassword) {
       setError('Las contraseñas no coinciden');
       return;
     }
-
+  
     setLoading(true);
     setError(null);
-
+  
     const newEmployee = {
       username,
+      password,
       email,
       first_name: firstName,
       last_name: lastName,
-      password,
     };
+  
+    try {
+      const token = localStorage.getItem('token');
+  
+      const response = await fetch('http://localhost:8000/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded', // El servidor espera este formato
+          'Authorization': `Bearer ${token}`, // El token para autenticar la solicitud
+        },
+        body: new URLSearchParams({
+          username: newEmployee.username,
+          password: newEmployee.password,
+        }).toString(), // Formato x-www-form-urlencoded
+      });
+  
+      if (!response.ok) {
+        // Manejo de diferentes errores según el estado de la respuesta
+        const errorData = await response.json();
+        if (response.status === 400) {
+          setError('Faltan credenciales.');
+        } else if (response.status === 500) {
+          setError('Error interno del servidor.');
+        } else {
+          setError('Error desconocido al crear el usuario.');
+        }
+        return;
+      }
 
-    // Aquí podrías manejar la lógica para enviar estos datos a tu backend
-    console.log(newEmployee);
+      router.push('/admin/employees');
 
-    setLoading(false);
+      // Aquí podrías hacer una redirección o mostrar un mensaje de éxito
+    } catch (error) {
+      setError('Hubo un problema al crear el usuario. Por favor, intenta nuevamente.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
