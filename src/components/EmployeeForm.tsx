@@ -10,12 +10,12 @@ import {
   GridItem,
   Input,
   Stack,
-  Heading,
   Text,
+  Spinner,
   useColorModeValue,
 } from '@chakra-ui/react';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 
 const EmployeeForm: React.FC = () => {
   const [username, setUsername] = useState<string>('');
@@ -27,16 +27,63 @@ const EmployeeForm: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      // Solo ejecutamos la petición si estamos en el perfil
+      if (pathname === '/profile') {
+        setLoading(true); // Comenzamos el spinner de carga
+        try {
+          const token = localStorage.getItem('token');
+
+          if (!token) {
+            setError('No hay un token de autenticación.');
+            setLoading(false);
+            return;
+          }
+
+          const response = await fetch('http://localhost:8000/users/me', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+
+          if (response.ok) {
+            const userData = await response.json();
+
+            // Verificamos que los datos existan antes de asignarlos
+            if (userData) {
+              setUsername(userData.usuario || '');
+              setEmail(userData.email || '');
+              setFirstName(userData.nombre || '');
+              setLastName(userData.apellido || '');
+            }
+          } else {
+            setError('No se pudieron cargar los datos del perfil.');
+          }
+        } catch (err) {
+          setError('Hubo un problema al cargar los datos del perfil.');
+        } finally {
+          setLoading(false); // Finalizamos el spinner de carga
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, [pathname]);
 
   const handleSubmit = async () => {
     if (password !== confirmPassword) {
       setError('Las contraseñas no coinciden');
       return;
     }
-  
+
     setLoading(true);
     setError(null);
-  
+
     const newEmployee = {
       username,
       password,
@@ -44,10 +91,10 @@ const EmployeeForm: React.FC = () => {
       first_name: firstName,
       last_name: lastName,
     };
-  
+
     try {
       const token = localStorage.getItem('token');
-  
+
       const response = await fetch('http://localhost:8000/users', {
         method: 'POST',
         headers: {
@@ -59,9 +106,8 @@ const EmployeeForm: React.FC = () => {
           password: newEmployee.password,
         }).toString(), // Formato x-www-form-urlencoded
       });
-  
+
       if (!response.ok) {
-        // Manejo de diferentes errores según el estado de la respuesta
         const errorData = await response.json();
         if (response.status === 400) {
           setError('Faltan credenciales.');
@@ -74,8 +120,6 @@ const EmployeeForm: React.FC = () => {
       }
 
       router.push('/admin/employees');
-
-      // Aquí podrías hacer una redirección o mostrar un mensaje de éxito
     } catch (error) {
       setError('Hubo un problema al crear el usuario. Por favor, intenta nuevamente.');
     } finally {
@@ -83,36 +127,44 @@ const EmployeeForm: React.FC = () => {
     }
   };
 
+  // Si está cargando los datos del perfil, mostramos el spinner
+  if (loading) {
+    return (
+      <Flex justify="center" align="center" height="100vh">
+        <Spinner size="xl" thickness="4px" speed="0.65s" color="teal.500" />
+      </Flex>
+    );
+  }
+
   return (
     <Flex align="center" justify="center" bg="none">
       <Stack spacing={8} mx="auto" maxW="lg" bg="none" pt={16} px={6}>
-        <Box rounded="lg" bg="none" /*boxShadow="lg"*/ p={8}>
+        <Box rounded="lg" bg="none" p={8}>
           <Stack spacing={4}>
-            
             <Grid templateColumns="repeat(2, 1fr)" gap={4}>
-                <GridItem>
-                    <FormControl id="firstName">
-                    <FormLabel>Nombre</FormLabel>
-                    <Input
-                        type="text"
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        placeholder="Nombre"
-                    />
-                    </FormControl>
-                </GridItem>
+              <GridItem>
+                <FormControl id="firstName">
+                  <FormLabel>Nombre</FormLabel>
+                  <Input
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="Nombre"
+                  />
+                </FormControl>
+              </GridItem>
 
-                <GridItem>
-                    <FormControl id="lastName">
-                    <FormLabel>Apellido</FormLabel>
-                    <Input
-                        type="text"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        placeholder="Apellido"
-                    />
-                    </FormControl>
-                </GridItem>
+              <GridItem>
+                <FormControl id="lastName">
+                  <FormLabel>Apellido</FormLabel>
+                  <Input
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="Apellido"
+                  />
+                </FormControl>
+              </GridItem>
             </Grid>
 
             <FormControl id="username">
@@ -171,7 +223,7 @@ const EmployeeForm: React.FC = () => {
                 onClick={handleSubmit}
                 isLoading={loading}
               >
-                Registrar Empleado
+                {pathname === '/profile' ? 'Actualizar Perfil' : 'Registrar Empleado'}
               </Button>
             </Stack>
           </Stack>
