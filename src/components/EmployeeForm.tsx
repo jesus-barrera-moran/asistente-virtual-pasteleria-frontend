@@ -18,25 +18,25 @@ import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
 const EmployeeForm: React.FC = () => {
-  const [username, setUsername] = useState<string>('');
-  const [email, setEmail] = useState<string>('');
-  const [firstName, setFirstName] = useState<string>('');
-  const [lastName, setLastName] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [username, setUsername] = useState<string>(''); 
+  const [email, setEmail] = useState<string>(''); 
+  const [firstName, setFirstName] = useState<string>(''); 
+  const [lastName, setLastName] = useState<string>(''); 
+  const [password, setPassword] = useState<string>(''); 
+  const [confirmPassword, setConfirmPassword] = useState<string>(''); 
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false); 
+  const [isEditing, setIsEditing] = useState<boolean>(false); // Estado para alternar entre vista y edición
+  const [initialData, setInitialData] = useState<any>({}); // Estado para guardar los datos originales
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
     const fetchUserProfile = async () => {
-      // Solo ejecutamos la petición si estamos en el perfil
       if (pathname === '/profile') {
-        setLoading(true); // Comenzamos el spinner de carga
+        setLoading(true);
         try {
           const token = localStorage.getItem('token');
-
           if (!token) {
             setError('No hay un token de autenticación.');
             setLoading(false);
@@ -53,21 +53,23 @@ const EmployeeForm: React.FC = () => {
 
           if (response.ok) {
             const userData = await response.json();
-
-            // Verificamos que los datos existan antes de asignarlos
-            if (userData) {
-              setUsername(userData.usuario || '');
-              setEmail(userData.email || '');
-              setFirstName(userData.nombre || '');
-              setLastName(userData.apellido || '');
-            }
+            setUsername(userData.usuario || '');
+            setEmail(userData.email || '');
+            setFirstName(userData.nombre || '');
+            setLastName(userData.apellido || '');
+            setInitialData({ // Guardamos los datos iniciales
+              usuario: userData.usuario || '',
+              email: userData.email || '',
+              nombre: userData.nombre || '',
+              apellido: userData.apellido || '',
+            });
           } else {
             setError('No se pudieron cargar los datos del perfil.');
           }
         } catch (err) {
           setError('Hubo un problema al cargar los datos del perfil.');
         } finally {
-          setLoading(false); // Finalizamos el spinner de carga
+          setLoading(false);
         }
       }
     };
@@ -84,7 +86,7 @@ const EmployeeForm: React.FC = () => {
     setLoading(true);
     setError(null);
 
-    const newEmployee = {
+    const updatedUser = {
       username,
       password,
       email,
@@ -95,16 +97,16 @@ const EmployeeForm: React.FC = () => {
     try {
       const token = localStorage.getItem('token');
 
-      const response = await fetch('http://localhost:8000/users', {
-        method: 'POST',
+      const response = await fetch('http://localhost:8000/users/me', {
+        method: 'PUT',
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded', // El servidor espera este formato
-          'Authorization': `Bearer ${token}`, // El token para autenticar la solicitud
+          'Content-Type': 'application/x-www-form-urlencoded', 
+          'Authorization': `Bearer ${token}`,
         },
         body: new URLSearchParams({
-          username: newEmployee.username,
-          password: newEmployee.password,
-        }).toString(), // Formato x-www-form-urlencoded
+          username: updatedUser.username,
+          password: updatedUser.password,
+        }).toString(),
       });
 
       if (!response.ok) {
@@ -114,17 +116,30 @@ const EmployeeForm: React.FC = () => {
         } else if (response.status === 500) {
           setError('Error interno del servidor.');
         } else {
-          setError('Error desconocido al crear el usuario.');
+          setError('Error desconocido al actualizar el perfil.');
         }
         return;
       }
 
-      router.push('/admin/employees');
+      setIsEditing(false); // Regresamos al modo de solo lectura
     } catch (error) {
-      setError('Hubo un problema al crear el usuario. Por favor, intenta nuevamente.');
+      setError('Hubo un problema al actualizar el perfil. Por favor, intenta nuevamente.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleEdit = () => {
+    setIsEditing((prevState) => !prevState); // Alternar entre modo de vista y edición
+  };
+
+  const handleCancel = () => {
+    // Restauramos los valores originales
+    setUsername(initialData.usuario);
+    setEmail(initialData.email);
+    setFirstName(initialData.nombre);
+    setLastName(initialData.apellido);
+    setIsEditing(false); // Volvemos al modo de solo lectura
   };
 
   // Si está cargando los datos del perfil, mostramos el spinner
@@ -140,93 +155,111 @@ const EmployeeForm: React.FC = () => {
     <Flex align="center" justify="center" bg="none">
       <Stack spacing={8} mx="auto" maxW="lg" bg="none" pt={16} px={6}>
         <Box rounded="lg" bg="none" p={8}>
-          <Stack spacing={4}>
-            <Grid templateColumns="repeat(2, 1fr)" gap={4}>
-              <GridItem>
-                <FormControl id="firstName">
-                  <FormLabel>Nombre</FormLabel>
-                  <Input
-                    type="text"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    placeholder="Nombre"
-                  />
-                </FormControl>
-              </GridItem>
+          {isEditing ? (
+            <Stack spacing={4}>
+              <Grid templateColumns="repeat(2, 1fr)" gap={4}>
+                <GridItem>
+                  <FormControl id="firstName">
+                    <FormLabel>Nombre</FormLabel>
+                    <Input
+                      type="text"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="Nombre"
+                    />
+                  </FormControl>
+                </GridItem>
 
-              <GridItem>
-                <FormControl id="lastName">
-                  <FormLabel>Apellido</FormLabel>
-                  <Input
-                    type="text"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    placeholder="Apellido"
-                  />
-                </FormControl>
-              </GridItem>
-            </Grid>
+                <GridItem>
+                  <FormControl id="lastName">
+                    <FormLabel>Apellido</FormLabel>
+                    <Input
+                      type="text"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="Apellido"
+                    />
+                  </FormControl>
+                </GridItem>
+              </Grid>
 
-            <FormControl id="username">
-              <FormLabel>Nombre de Usuario</FormLabel>
-              <Input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Nombre de usuario"
-              />
-            </FormControl>
+              <FormControl id="username">
+                <FormLabel>Nombre de Usuario</FormLabel>
+                <Input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Nombre de usuario"
+                />
+              </FormControl>
 
-            <FormControl id="email">
-              <FormLabel>Correo Electrónico</FormLabel>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Correo electrónico"
-              />
-            </FormControl>
+              <FormControl id="email">
+                <FormLabel>Correo Electrónico</FormLabel>
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Correo electrónico"
+                />
+              </FormControl>
 
-            <FormControl id="password">
-              <FormLabel>Contraseña</FormLabel>
-              <Input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Crea una contraseña"
-              />
-            </FormControl>
+              <FormControl id="password">
+                <FormLabel>Contraseña</FormLabel>
+                <Input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Crea una contraseña"
+                />
+              </FormControl>
 
-            <FormControl id="confirmPassword">
-              <FormLabel>Confirmar Contraseña</FormLabel>
-              <Input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirma la contraseña"
-              />
-            </FormControl>
+              <FormControl id="confirmPassword">
+                <FormLabel>Confirmar Contraseña</FormLabel>
+                <Input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirma la contraseña"
+                />
+              </FormControl>
 
-            {error && (
-              <Text color="red.500" fontSize="sm">
-                {error}
-              </Text>
-            )}
+              {error && (
+                <Text color="red.500" fontSize="sm">
+                  {error}
+                </Text>
+              )}
 
-            <Stack spacing={10}>
-              <Button
-                bg="blue.400"
-                color="white"
-                _hover={{
-                  bg: 'blue.500',
-                }}
-                onClick={handleSubmit}
-                isLoading={loading}
-              >
-                {pathname === '/profile' ? 'Actualizar Perfil' : 'Registrar Empleado'}
+              <Stack direction="row" spacing={4} justifyContent={'center'}>
+                <Button
+                  bg="blue.400"
+                  color="white"
+                  _hover={{ bg: 'blue.500' }}
+                  onClick={handleSubmit}
+                  isLoading={loading}
+                >
+                  Guardar Cambios
+                </Button>
+                <Button
+                  bg="red.400"
+                  color="white"
+                  _hover={{ bg: 'red.500' }}
+                  onClick={handleCancel}
+                >
+                  Cancelar
+                </Button>
+              </Stack>
+            </Stack>
+          ) : (
+            <Stack spacing={4}>
+              <Text><strong>Nombre:</strong> {firstName}</Text>
+              <Text><strong>Apellido:</strong> {lastName}</Text>
+              <Text><strong>Nombre de Usuario:</strong> {username}</Text>
+              <Text><strong>Email:</strong> {email}</Text>
+              <Button onClick={toggleEdit} bg="blue.400" color="white" _hover={{ bg: 'blue.500' }}>
+                Editar Perfil
               </Button>
             </Stack>
-          </Stack>
+          )}
         </Box>
       </Stack>
     </Flex>
