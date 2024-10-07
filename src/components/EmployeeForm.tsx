@@ -22,7 +22,7 @@ const EmployeeForm: React.FC = () => {
   const [email, setEmail] = useState<string>(''); 
   const [firstName, setFirstName] = useState<string>(''); 
   const [lastName, setLastName] = useState<string>(''); 
-  const [currentPassword, setCurrentPassword] = useState<string>(''); // Para actualización de contraseña en /profile
+  const [currentPassword, setCurrentPassword] = useState<string>(''); 
   const [password, setPassword] = useState<string>(''); 
   const [confirmPassword, setConfirmPassword] = useState<string>(''); 
   const [updatePasswordMode, setUpdatePasswordMode] = useState<boolean>(false); // Modo para actualización de contraseña
@@ -91,8 +91,8 @@ const EmployeeForm: React.FC = () => {
   }, [pathname]);
 
   const handleSubmit = async () => {
-    // Validación de contraseñas para nuevo usuario o actualización de contraseña
-    if ((pathname === '/admin/employee' || updatePasswordMode) && password !== confirmPassword) {
+    // Validación de contraseñas solo si estamos en modo de actualización de contraseña
+    if (updatePasswordMode && password !== confirmPassword) {
       setError('Las contraseñas no coinciden');
       return;
     }
@@ -100,59 +100,103 @@ const EmployeeForm: React.FC = () => {
     setLoading(true);
     setError(null);
 
-    // Crear el payload dependiendo de si es nuevo usuario o actualización de perfil
-    const userPayload = {
-      username,
-      email,
-      first_name: firstName,
-      last_name: lastName,
-      ...(pathname === '/admin/employee' && { password }), // Incluir la contraseña si estamos creando un nuevo usuario
-      ...(updatePasswordMode && { current_password: currentPassword, password }), // Incluir la contraseña actual y nueva si estamos actualizando
-    };
+    const token = localStorage.getItem('token');
 
     try {
-      const token = localStorage.getItem('token');
-      const endpoint = pathname === '/profile' ? '/users/me' : '/users';
-      const method = pathname === '/profile' ? 'PUT' : 'POST'; // PUT si estamos en perfil, POST si estamos creando un usuario
+      if (updatePasswordMode) {
+        // Actualización de contraseña
+        const response = await fetch('http://localhost:8000/users/me/password', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            current_password: currentPassword,
+            new_password: password,
+          }),
+        });
 
-      const response = await fetch(`http://localhost:8000${endpoint}`, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(userPayload),
-      });
-
-      // Check if response status is 401
-      if (response.status === 401) {
-        setLoading(false);
-        alert('La sesión ha expirado, por favor inicia sesión nuevamente');
-        localStorage.removeItem('token');
-        router.push('/login');
-        return;
-      }
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        if (response.status === 400) {
-          setError('Faltan credenciales.');
-        } else if (response.status === 500) {
-          setError('Error interno del servidor.');
-        } else {
-          setError('Error desconocido.');
+        // Check if response status is 401
+        if (response.status === 401) {
+          setLoading(false);
+          alert('La sesión ha expirado, por favor inicia sesión nuevamente');
+          localStorage.removeItem('token');
+          router.push('/login');
+          return;
         }
-        return;
-      }
 
-      if (pathname === '/profile') {
-        setIsEditing(false); // Volver al modo de solo lectura
-        setUpdatePasswordMode(false); // Salir del modo de actualización de contraseña
+        if (!response.ok) {
+          const errorData = await response.json();
+          if (response.status === 400) {
+            setError('Contraseña actual incorrecta.');
+          } else if (response.status === 500) {
+            setError('Error interno del servidor.');
+          } else {
+            setError('Error desconocido.');
+          }
+          return;
+        }
+
+        // Salir del modo de actualización de contraseña
+        setUpdatePasswordMode(false);
+        setCurrentPassword('');
+        setPassword('');
+        setConfirmPassword('');
+
       } else {
-        router.push('/admin/employees'); // Redirigir después de crear el usuario
+        // Actualización de perfil o creación de usuario
+        const userPayload = {
+          username,
+          email,
+          first_name: firstName,
+          last_name: lastName,
+          ...(pathname === '/admin/employee' && { password }), // Incluir la contraseña si estamos creando un nuevo usuario
+        };
+
+        const endpoint = pathname === '/profile' ? '/users/me' : '/users';
+        const method = pathname === '/profile' ? 'PUT' : 'POST'; // PUT si estamos en perfil, POST si estamos creando un usuario
+
+        const response = await fetch(`http://localhost:8000${endpoint}`, {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify(userPayload),
+        });
+
+        // Check if response status is 401
+        if (response.status === 401) {
+          setLoading(false);
+          alert('La sesión ha expirado, por favor inicia sesión nuevamente');
+          localStorage.removeItem('token');
+          router.push('/login');
+          return;
+        }
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          if (response.status === 400) {
+            setError('Faltan credenciales.');
+          } else if (response.status === 500) {
+            setError('Error interno del servidor.');
+          } else {
+            setError('Error desconocido.');
+          }
+          return;
+        }
+
+        if (pathname === '/profile') {
+          setIsEditing(false); // Volver al modo de solo lectura
+        } else {
+          router.push('/admin/employees'); // Redirigir después de crear el usuario
+        }
       }
     } catch (error) {
       setError('Hubo un problema al procesar la solicitud. Por favor, intenta nuevamente.');
+    } finally {
+      setLoading(false);
     }
   };
 
