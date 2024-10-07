@@ -9,6 +9,7 @@ export interface IRoute {
   icon?: ComponentType | string | Element;
   secondary?: boolean;
   collapse?: boolean;
+  permissionLevel?: number[];
   items?: IRoute[];
   rightElement?: boolean;
   invisible?: boolean;

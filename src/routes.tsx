@@ -16,12 +16,14 @@ const routes: IRoute[] = [
       <Icon as={MdAutoAwesome} width="20px" height="20px" color="inherit" />
     ),
     collapse: false,
+    permissionLevel: [],
   },
   {
     name: 'Administración',
     path: '/admin',
     icon: <Icon as={MdLock} width="20px" height="20px" color="inherit" />,
     collapse: true,
+    permissionLevel: [1, 2],
     items: [
       {
         name: 'Empleados',
@@ -52,6 +54,7 @@ const routes: IRoute[] = [
       />
     ),
     collapse: false,
+    permissionLevel: [1, 2, 3],
   },
 ];
 
