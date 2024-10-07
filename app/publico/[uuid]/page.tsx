@@ -10,11 +10,11 @@ import {
   Text,
   useColorModeValue,
 } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { MdAutoAwesome, MdEdit, MdPerson } from 'react-icons/md';
+import { useState } from 'react';
+import { useRouter, usePathname, useParams } from 'next/navigation';
+import { MdAutoAwesome, MdPerson } from 'react-icons/md';
 // import Bg from '../public/img/chat/bg-image-2.png';
-import logo2 from '../../public/img/chat/Logo-2.png';
+import logo2 from '../../../public/img/chat/Logo-2.png';
 
 export default function Chat(props: { apiKeyApp: string }) {
   // Input States
@@ -24,14 +24,16 @@ export default function Chat(props: { apiKeyApp: string }) {
   const [outputCode, setOutputCode] = useState<string>('');
   // Loading state
   const [loading, setLoading] = useState<boolean>(false);
+
   const router = useRouter();
+  const pathname = usePathname();
+  const { uuid } = useParams();
 
   // API Key
   // const [apiKey, setApiKey] = useState<string>(apiKeyApp);
   const borderColor = useColorModeValue('gray.200', 'whiteAlpha.200');
   const inputColor = useColorModeValue('navy.700', 'white');
   const brandColor = useColorModeValue('brand.500', 'white');
-  const gray = useColorModeValue('gray.500', 'white');
   const textColor = useColorModeValue('navy.700', 'white');
   const placeholderColor = useColorModeValue(
     { color: 'gray.500' },
@@ -55,7 +57,7 @@ export default function Chat(props: { apiKeyApp: string }) {
       const token = localStorage.getItem('token');
   
       // -------------- Fetch --------------
-      const response = await fetch('http://localhost:8000/asistente/invoke', {
+      const response = await fetch(`http://localhost:8000/atencion_cliente/invoke/${uuid}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -224,7 +226,7 @@ export default function Chat(props: { apiKeyApp: string }) {
             _focus={{ borderColor: 'none' }}
             color={inputColor}
             _placeholder={placeholderColor}
-            placeholder="Eres un cliente"
+            placeholder="Escribe tu consulta aquí..."
             onChange={handleChange}
             value={inputCode}
           />

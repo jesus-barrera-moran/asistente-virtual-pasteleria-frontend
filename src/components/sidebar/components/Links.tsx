@@ -21,7 +21,7 @@ import { FaCircle } from 'react-icons/fa';
 import NavLink from '@/components/link/NavLink';
 import { IRoute } from '@/types/navigation';
 import { PropsWithChildren, useCallback } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useParams } from 'next/navigation';
 
 const isAllowed = (isPublicRoute: boolean, currentUserRole: string, permissionLevel?: number[]) => {
   const rolesHierarchy: { [key: string]: number } = { '17': 1, '11': 2, '12': 3 };
@@ -45,6 +45,8 @@ interface SidebarLinksProps extends PropsWithChildren {
 export function SidebarLinks(props: SidebarLinksProps) {
   //   Chakra color mode
   const pathname = usePathname();
+  const { uuid } = useParams();
+
   let activeColor = useColorModeValue('navy.700', 'white');
   let inactiveColor = useColorModeValue('black.500', 'black.500');
   let activeIcon = useColorModeValue('brand.500', 'white');
@@ -202,7 +204,7 @@ export function SidebarLinks(props: SidebarLinksProps) {
                   {/* {route.name === 'Chat UI' ? ( */}
                     <NavLink
                       href={
-                        (route.layout ? route.layout + route.path : route.path) + (isPublicRoute ? 'publico' : '')
+                        (route.layout ? route.layout + route.path : route.path) + (isPublicRoute ? `publico/${uuid}` : '')
                       }
                       key={key}
                       styles={{ width: '100%' }}

@@ -96,98 +96,100 @@ function SidebarContent(props: SidebarContent) {
         </Box>
       </Stack>
 
-      <Flex
-        mt="8px"
-        justifyContent="center"
-        alignItems="center"
-        boxShadow={shadowPillBar}
-        borderRadius="30px"
-        p="14px"
-      >
-        <Text color={textColor} fontSize="xs" fontWeight="600" me="10px">
-          {userFullName}
-        </Text>
-        {/* <Menu>
-          <MenuButton
-            as={Button}
+      {!isPublicRoute && (
+        <Flex
+          mt="8px"
+          justifyContent="center"
+          alignItems="center"
+          boxShadow={shadowPillBar}
+          borderRadius="30px"
+          p="14px"
+        >
+          <Text color={textColor} fontSize="xs" fontWeight="600" me="10px">
+            {userFullName}
+          </Text>
+          {/* <Menu>
+            <MenuButton
+              as={Button}
+              variant="transparent"
+              aria-label=""
+              border="1px solid"
+              borderColor={borderColor}
+              borderRadius="full"
+              w="34px"
+              h="34px"
+              px="0px"
+              p="0px"
+              minW="34px"
+              me="10px"
+              justifyContent={'center'}
+              alignItems="center"
+              color={iconColor}
+            >
+              <Flex align="center" justifyContent="center">
+                <Icon
+                  as={MdOutlineSettings}
+                  width="18px"
+                  height="18px"
+                  color="inherit"
+                />
+              </Flex>
+            </MenuButton>
+            <MenuList
+              ms="-20px"
+              py="25px"
+              ps="20px"
+              pe="20px"
+              w="246px"
+              borderRadius="16px"
+              transform="translate(-19px, -62px)!important"
+              border="0px"
+              boxShadow={shadow}
+              bg={bgColor}
+            >
+              <Box mb="30px">
+                <Flex align="center" w="100%">
+                  <Icon
+                    as={MdOutlineManageAccounts}
+                    width="24px"
+                    height="24px"
+                    color={gray}
+                    me="12px"
+                    opacity={'0.4'}
+                  />
+                  <Link
+                    href="/profile"
+                    >
+                      <Text
+                        color={gray}
+                        fontWeight="500"
+                        fontSize="sm"
+                        opacity={'0.4'}
+                      >
+                        Perfil
+                      </Text>
+                    </Link>
+                </Flex>
+              </Box>
+            </MenuList>
+          </Menu> */}
+          <Button
             variant="transparent"
-            aria-label=""
             border="1px solid"
             borderColor={borderColor}
             borderRadius="full"
             w="34px"
             h="34px"
             px="0px"
-            p="0px"
             minW="34px"
-            me="10px"
             justifyContent={'center'}
             alignItems="center"
-            color={iconColor}
+            onClick={handleLogout}
           >
-            <Flex align="center" justifyContent="center">
-              <Icon
-                as={MdOutlineSettings}
-                width="18px"
-                height="18px"
-                color="inherit"
-              />
-            </Flex>
-          </MenuButton>
-          <MenuList
-            ms="-20px"
-            py="25px"
-            ps="20px"
-            pe="20px"
-            w="246px"
-            borderRadius="16px"
-            transform="translate(-19px, -62px)!important"
-            border="0px"
-            boxShadow={shadow}
-            bg={bgColor}
-          >
-            <Box mb="30px">
-              <Flex align="center" w="100%">
-                <Icon
-                  as={MdOutlineManageAccounts}
-                  width="24px"
-                  height="24px"
-                  color={gray}
-                  me="12px"
-                  opacity={'0.4'}
-                />
-                <Link
-                  href="/profile"
-                  >
-                    <Text
-                      color={gray}
-                      fontWeight="500"
-                      fontSize="sm"
-                      opacity={'0.4'}
-                    >
-                      Perfil
-                    </Text>
-                  </Link>
-              </Flex>
-            </Box>
-          </MenuList>
-        </Menu> */}
-        <Button
-          variant="transparent"
-          border="1px solid"
-          borderColor={borderColor}
-          borderRadius="full"
-          w="34px"
-          h="34px"
-          px="0px"
-          minW="34px"
-          justifyContent={'center'}
-          alignItems="center"
-          onClick={handleLogout}
-        >
-          <Icon as={FiLogOut} width="16px" height="16px" color="inherit" />
-        </Button>
-      </Flex>
+            <Icon as={FiLogOut} width="16px" height="16px" color="inherit" />
+          </Button>
+        </Flex>
+      )}
     </Flex>
   );
 }
