@@ -9,11 +9,11 @@ import {
   Input,
   Text,
   useColorModeValue,
+  useToast, // Importar useToast
 } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { MdAutoAwesome, MdEdit, MdPerson } from 'react-icons/md';
-// import Bg from '../public/img/chat/bg-image-2.png';
+import { MdAutoAwesome, MdPerson } from 'react-icons/md';
 import logo2 from '../public/img/chat/Logo-2.png';
 
 export default function Chat(props: { apiKeyApp: string }) {
@@ -25,9 +25,8 @@ export default function Chat(props: { apiKeyApp: string }) {
   // Loading state
   const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
+  const toast = useToast(); // Hook para mostrar los mensajes de error/success
 
-  // API Key
-  // const [apiKey, setApiKey] = useState<string>(apiKeyApp);
   const borderColor = useColorModeValue('gray.200', 'whiteAlpha.200');
   const inputColor = useColorModeValue('navy.700', 'white');
   const brandColor = useColorModeValue('brand.500', 'white');
@@ -42,7 +41,6 @@ export default function Chat(props: { apiKeyApp: string }) {
     setInputCode('');
     try {
       setInputOnSubmit(inputCode);
-  
       setOutputCode(' ');
       setLoading(true);
       const controller = new AbortController();
@@ -51,9 +49,9 @@ export default function Chat(props: { apiKeyApp: string }) {
           input: inputCode,
         },
       };
-  
+
       const token = localStorage.getItem('token');
-  
+
       // -------------- Fetch --------------
       const response = await fetch('http://localhost:8000/asistente/invoke', {
         method: 'POST',
@@ -68,24 +66,36 @@ export default function Chat(props: { apiKeyApp: string }) {
       // Check if response status is 401
       if (response.status === 401) {
         setLoading(false);
-        alert('La sesión ha expirado, por favor inicia sesión nuevamente');
+        toast({
+          title: 'Sesión expirada',
+          description: 'Por favor, inicia sesión nuevamente.',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
         localStorage.removeItem('token');
         router.push('/login');
         return;
       }
 
       const data = response.body;
-  
+
       if (!data) {
         setLoading(false);
-        alert('Something went wrong');
+        toast({
+          title: 'Error en la solicitud',
+          description: 'Algo salió mal, por favor intenta de nuevo.',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
         return;
       }
-  
+
       const reader = data.getReader();
       const decoder = new TextDecoder();
       let done = false;
-  
+
       while (!done) {
         setLoading(true);
         const { value, done: doneReading } = await reader.read();
@@ -96,15 +106,22 @@ export default function Chat(props: { apiKeyApp: string }) {
         const chunkValueStringResponse = JSON.stringify(chunkValueJsonResponse);
         setOutputCode((prevCode) => chunkValueStringResponse ? prevCode + chunkValueStringResponse : prevCode);
       }
-  
+
       setLoading(false);
     } catch (error) {
       setLoading(false);
-      alert('Something went wrong');
+      // Mostrar error si ocurre algún problema
+      toast({
+        title: 'Error en la solicitud',
+        description: 'Algo salió mal, por favor intenta de nuevo.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   const handleChange = (Event: any) => {
     setInputCode(Event.target.value);

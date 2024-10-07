@@ -12,6 +12,7 @@ import {
   Text,
   Link,
   useColorModeValue,
+  useToast,  // Importamos useToast
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -21,10 +22,11 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
+  const toast = useToast();  // Hook para mostrar los toasts
 
   const handleSubmit = async () => {
     setLoading(true);
-  
+
     try {
       const formData = new URLSearchParams();
       formData.append('username', username);  // Cambia 'email' por 'username'
@@ -39,7 +41,13 @@ const Login: React.FC = () => {
       });
 
       if (!response.ok) {
-        alert('Error al iniciar sesión. Verifica tus credenciales.');
+        toast({
+          title: 'Error de inicio de sesión',
+          description: 'Verifica tus credenciales e inténtalo de nuevo.',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
       } else {
         const data = await response.json();
         localStorage.setItem('token', data.token.access_token);
@@ -49,10 +57,24 @@ const Login: React.FC = () => {
         localStorage.setItem('nombre', data.user.nombre);
         localStorage.setItem('apellido', data.user.apellido);
 
+        toast({
+          title: 'Inicio de sesión exitoso',
+          description: 'Redirigiendo al panel principal...',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+
         router.push('/');
       }
     } catch (error) {
-      alert('Hubo un problema al conectar con el servidor. Inténtalo de nuevo.');
+      toast({
+        title: 'Error de conexión',
+        description: 'Hubo un problema al conectar con el servidor. Inténtalo de nuevo.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
     } finally {
       setLoading(false);
     }

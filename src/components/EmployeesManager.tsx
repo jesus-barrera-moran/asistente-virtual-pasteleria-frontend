@@ -36,7 +36,7 @@ const EmployeesManager: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState<{ [key: number]: boolean }>({});
   const [changes, setChanges] = useState<{ [key: number]: boolean }>({});
-  const toast = useToast();
+  const toast = useToast(); // Hook para mostrar mensajes de toast
   const router = useRouter();
   const currentUserRole = String(localStorage.getItem('id_rol'));
 
@@ -57,7 +57,13 @@ const EmployeesManager: React.FC = () => {
 
         if (response.status === 401) {
           setLoading(false);
-          alert('La sesión ha expirado, por favor inicia sesión nuevamente');
+          toast({
+            title: 'Sesión expirada',
+            description: 'La sesión ha expirado, por favor inicia sesión nuevamente.',
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+          });
           localStorage.removeItem('token');
           router.push('/login');
           return;
@@ -91,7 +97,7 @@ const EmployeesManager: React.FC = () => {
     };
 
     fetchUsers();
-  }, [toast]);
+  }, [toast, router]);
 
   const handleToggleEnabled = (id: number) => {
     setUsers((prevUsers) =>
