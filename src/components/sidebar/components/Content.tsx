@@ -74,6 +74,16 @@ function SidebarContent(props: SidebarContent) {
     localStorage.removeItem('usuario');
     localStorage.removeItem('nombre');
     localStorage.removeItem('apellido');
+    
+    // Mostrar un mensaje de confirmación de logout
+    toast({
+      title: 'Sesión cerrada',
+      description: 'Has cerrado sesión correctamente.',
+      status: 'success',
+      duration: 3000,
+      isClosable: true,
+    });
+
     // Redirect to login
     router.push('/login');
   };
@@ -117,7 +127,7 @@ function SidebarContent(props: SidebarContent) {
       >
         <Icon as={FiCopy} width="16px" height="16px" color="inherit" />
       </Button>
-      <Img src={logo1.src} w="75px" margin={'auto'} />
+      <Img src={logo1.src} w="75px" margin={'0 auto'} />
 
       <Flex alignItems="center" flexDirection="column">
         <Text
@@ -142,7 +152,6 @@ function SidebarContent(props: SidebarContent) {
 
       {!isPublicRoute && (
         <Flex
-          mt="8px"
           justifyContent="center"
           alignItems="center"
           boxShadow={shadowPillBar}
