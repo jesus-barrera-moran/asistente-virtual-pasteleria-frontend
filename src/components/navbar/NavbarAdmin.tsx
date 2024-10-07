@@ -108,8 +108,8 @@ export default function AdminNavbar(props: {
             bg="inherit"
             borderRadius="inherit"
             fontWeight="900px"
-            fontSize="34px"
-            fontStyle={'oblique'}
+            fontSize="30px"
+            // fontStyle={'oblique'}
             p="0px"
             _hover={{ color: { mainText } }}
             _active={{

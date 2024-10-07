@@ -55,6 +55,15 @@ const EmployeeForm: React.FC = () => {
             },
           });
 
+          // Check if response status is 401
+          if (response.status === 401) {
+            setLoading(false);
+            alert('La sesión ha expirado, por favor inicia sesión nuevamente');
+            localStorage.removeItem('token');
+            router.push('/login');
+            return;
+          }
+
           if (response.ok) {
             const userData = await response.json();
             setUsername(userData.usuario || '');
@@ -114,6 +123,15 @@ const EmployeeForm: React.FC = () => {
         },
         body: JSON.stringify(userPayload),
       });
+
+      // Check if response status is 401
+      if (response.status === 401) {
+        setLoading(false);
+        alert('La sesión ha expirado, por favor inicia sesión nuevamente');
+        localStorage.removeItem('token');
+        router.push('/login');
+        return;
+      }
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -219,6 +237,7 @@ const EmployeeForm: React.FC = () => {
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       placeholder="Nombre de usuario"
+                      disabled={pathname === '/profile' && isEditing}
                     />
                   </FormControl>
 
@@ -310,14 +329,16 @@ const EmployeeForm: React.FC = () => {
                 >
                   {pathname === '/profile' ? (updatePasswordMode ? 'Actualizar Contraseña' : 'Guardar Cambios') : 'Crear Usuario'}
                 </Button>
-                <Button
-                  bg="red.400"
-                  color="white"
-                  _hover={{ bg: 'red.500' }}
-                  onClick={handleCancel}
-                >
-                  Cancelar
-                </Button>
+                {pathname === '/profile' && (
+                  <Button
+                    bg="red.400"
+                    color="white"
+                    _hover={{ bg: 'red.500' }}
+                    onClick={handleCancel}
+                  >
+                    Cancelar
+                  </Button>
+                )}
               </Stack>
             </Stack>
           )}
