@@ -22,7 +22,7 @@ const EmployeeForm: React.FC = () => {
   const [email, setEmail] = useState<string>(''); 
   const [firstName, setFirstName] = useState<string>(''); 
   const [lastName, setLastName] = useState<string>(''); 
-  const [currentPassword, setCurrentPassword] = useState<string>(''); // Para actualización de contraseña
+  const [currentPassword, setCurrentPassword] = useState<string>(''); // Para actualización de contraseña en /profile
   const [password, setPassword] = useState<string>(''); 
   const [confirmPassword, setConfirmPassword] = useState<string>(''); 
   const [updatePasswordMode, setUpdatePasswordMode] = useState<boolean>(false); // Modo para actualización de contraseña
@@ -82,7 +82,8 @@ const EmployeeForm: React.FC = () => {
   }, [pathname]);
 
   const handleSubmit = async () => {
-    if (updatePasswordMode && password !== confirmPassword) {
+    // Validación de contraseñas para nuevo usuario o actualización de contraseña
+    if ((pathname === '/admin/employee' || updatePasswordMode) && password !== confirmPassword) {
       setError('Las contraseñas no coinciden');
       return;
     }
@@ -90,12 +91,14 @@ const EmployeeForm: React.FC = () => {
     setLoading(true);
     setError(null);
 
+    // Crear el payload dependiendo de si es nuevo usuario o actualización de perfil
     const userPayload = {
       username,
       email,
       first_name: firstName,
       last_name: lastName,
-      ...(updatePasswordMode && { current_password: currentPassword, password }), // Solo incluir la contraseña si estamos actualizando la contraseña
+      ...(pathname === '/admin/employee' && { password }), // Incluir la contraseña si estamos creando un nuevo usuario
+      ...(updatePasswordMode && { current_password: currentPassword, password }), // Incluir la contraseña actual y nueva si estamos actualizando
     };
 
     try {
@@ -132,8 +135,6 @@ const EmployeeForm: React.FC = () => {
       }
     } catch (error) {
       setError('Hubo un problema al procesar la solicitud. Por favor, intenta nuevamente.');
-    } finally {
-      setLoading(false);
     }
   };
 
