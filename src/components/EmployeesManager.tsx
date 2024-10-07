@@ -35,7 +35,6 @@ const EmployeesManager: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [originalRoles, setOriginalRoles] = useState<{ [key: number]: string }>({});
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState<{ [key: number]: boolean }>({});
   const [changes, setChanges] = useState<{ [key: number]: boolean }>({});
   const [currentPage, setCurrentPage] = useState(1); // Página actual
@@ -90,7 +89,6 @@ const EmployeesManager: React.FC = () => {
         }, {});
         setOriginalRoles(roles);
       } catch (err) {
-        setError('Error al cargar los usuarios');
         toast({
           title: 'Error',
           description: 'No se pudieron cargar los usuarios.',
@@ -230,23 +228,21 @@ const EmployeesManager: React.FC = () => {
     );
   }
 
-  if (error) {
-    return <p>{error}</p>;
-  }
-
   return (
     <Flex align="center" justify="center" bg="none">
       <Stack spacing={8} mx="auto" w="100%" bg="none" maxW="1000px" pt={16} px={6}>
         <Box w="100%" maxW="1000px" mx="auto" p={6} bg="none" rounded="lg">
           <Stack align="center">
             {/* Campo de búsqueda */}
-            <Input
-              placeholder="Buscar por nombre de usuario o correo"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              mb={4}
-              maxW="300px"
-            />
+            {users.length > 0 && (
+              <Input
+                placeholder="Buscar por nombre de usuario o correo"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                mb={4}
+                maxW="300px"
+              />
+            )}
             {users.length > 0 ? (
               <>
                 <Table variant="simple">

@@ -11,14 +11,16 @@ import {
   Textarea,
   Select,
   Text,
+  Spinner,
   HStack,
   VisuallyHidden,
   IconButton,
   useToast,
 } from '@chakra-ui/react';
 import { FiUpload, FiTrash } from 'react-icons/fi';
-import { useState } from 'react';
-import mammoth from 'mammoth'; // Para manejar archivos .docx
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import mammoth from 'mammoth';
 
 type Document = {
   id: number;
@@ -27,27 +29,83 @@ type Document = {
   file?: File | null;
 };
 
-const initialDocuments: Document[] = [
-  { id: 1, title: 'Documento 1', content: 'Este es el contenido del Documento 1.' },
-  { id: 2, title: 'Documento 2', content: 'Este es el contenido del Documento 2.' },
-  { id: 3, title: 'Documento 3', content: 'Este es el contenido del Documento 3.' },
-];
-
 const DocumentsManager: React.FC = () => {
-  const [documents, setDocuments] = useState<Document[]>(initialDocuments);
+  const [documents, setDocuments] = useState<Document[]>([]);
   const [selectedDocumentId, setSelectedDocumentId] = useState<number | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const toast = useToast();
+  const router = useRouter();
 
-  // Tipos de archivo permitidos (MIME types)
-  const validFileTypes = [
-    'text/plain', // .txt
-    'text/csv', // .csv
-    'text/markdown', // .md
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
-  ];
+  const validFileTypes = ['text/plain', 'text/csv', 'text/markdown', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+  const maxFileSize = 2 * 1024 * 1024; // 2MB
 
-  const maxFileSize = 2 * 1024 * 1024; // Tamaño máximo del archivo en bytes (2MB)
+  useEffect(() => {
+    const fetchDocumentsData = async () => {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem('token');
+        const id_pasteleria = localStorage.getItem('id_pasteleria');
+
+        // Llamada al primer endpoint (obtener documentos de la base de datos)
+        const documentosResponse = await fetch(`http://localhost:8000/pastelerias/${id_pasteleria}/documentos`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (documentosResponse.status === 401) {
+          setLoading(false);
+          toast({
+            title: 'Sesión expirada',
+            description: 'Por favor, inicia sesión nuevamente.',
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+          });
+          localStorage.removeItem('token');
+          router.push('/login');
+          return;
+        }
+
+        const documentosData = await documentosResponse.json();
+
+        // Llamada al segundo endpoint (obtener contenido de los archivos en la bucket)
+        const filesResponse = await fetch(`http://localhost:8000/pastelerias/${id_pasteleria}/files`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        const filesData = filesResponse.ok ? await filesResponse.json() : []; // Si no hay archivos, devolver un array vacío
+
+        // Mapear documentos con el contenido del archivo
+        const mappedDocuments = documentosData.map((doc: any, index: number) => {
+          const matchingFile = filesData.find((file: any) => file.name === doc.nombre);
+          return {
+            id: index + 1,
+            title: doc.nombre,
+            content: matchingFile ? matchingFile.content : '', // Si no existe en bucket, mostrar vacío
+          };
+        });
+
+        setDocuments(mappedDocuments);
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: 'Hubo un problema al cargar los documentos.',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDocumentsData();
+  }, [toast, router]);
 
   const handleDocumentChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedId = parseInt(event.target.value, 10);
@@ -65,10 +123,9 @@ const DocumentsManager: React.FC = () => {
   const handleFileChange = async (file: File | null) => {
     if (file && selectedDocumentId !== null) {
       const fileExtension = file.name.split('.').pop()?.toLowerCase();
-  
-      // Verificar tanto el MIME type como la extensión del archivo
+
       const isValidFile = validFileTypes.includes(file.type) || fileExtension === 'md';
-      
+
       if (!isValidFile) {
         toast({
           title: 'Tipo de archivo no válido',
@@ -80,7 +137,6 @@ const DocumentsManager: React.FC = () => {
         return;
       }
 
-      // Verificar el tamaño del archivo
       if (file.size > maxFileSize) {
         toast({
           title: 'Archivo demasiado grande',
@@ -94,39 +150,32 @@ const DocumentsManager: React.FC = () => {
 
       const reader = new FileReader();
 
-      // Si el archivo es un archivo de texto (.txt, .csv o .md)
       if (file.type === 'text/plain' || file.type === 'text/csv' || fileExtension === 'md') {
         reader.onload = (event) => {
           const fileContent = event.target?.result as string;
 
-          // Actualizamos el contenido del documento con el contenido del archivo cargado
           setDocuments((prevDocuments) =>
             prevDocuments.map((doc) =>
               doc.id === selectedDocumentId ? { ...doc, content: fileContent, file } : doc
             )
           );
         };
-        reader.readAsText(file); // Leemos el archivo como texto
-      }
-
-      // Si el archivo es Word (.docx)
-      else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+        reader.readAsText(file);
+      } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
         reader.onload = (event) => {
           const arrayBuffer = event.target?.result;
 
-          // Usar Mammoth.js para extraer texto del archivo .docx
           mammoth.extractRawText({ arrayBuffer })
             .then((result) => {
-              const extractedText = result.value; // Texto extraído
+              const extractedText = result.value;
 
-              // Actualizamos el contenido del documento con el texto extraído
               setDocuments((prevDocuments) =>
                 prevDocuments.map((doc) =>
                   doc.id === selectedDocumentId ? { ...doc, content: extractedText, file } : doc
                 )
               );
             })
-            .catch((err) => {
+            .catch(() => {
               toast({
                 title: 'Error al leer archivo .docx',
                 description: 'Ocurrió un error al leer el archivo Word.',
@@ -136,7 +185,7 @@ const DocumentsManager: React.FC = () => {
               });
             });
         };
-        reader.readAsArrayBuffer(file); // Leemos el archivo .docx como ArrayBuffer
+        reader.readAsArrayBuffer(file);
       }
 
       reader.onerror = () => {
@@ -169,6 +218,14 @@ const DocumentsManager: React.FC = () => {
   };
 
   const selectedDocument = documents.find(doc => doc.id === selectedDocumentId);
+
+  if (loading) {
+    return (
+      <Flex justify="center" align="center" height="100vh">
+        <Spinner size="xl" thickness="4px" speed="0.65s" color="teal.500" />
+      </Flex>
+    );
+  }
 
   return (
     <Flex align="center" justify="center" bg="none">
@@ -209,7 +266,7 @@ const DocumentsManager: React.FC = () => {
                     <VisuallyHidden>
                       <Input
                         type="file"
-                        accept=".txt,.csv,.md,.docx"  // Especificar extensiones permitidas
+                        accept=".txt,.csv,.md,.docx"
                         id={`file-input-${selectedDocument.id}`}
                         onChange={(e) => handleFileChange(e.target.files ? e.target.files[0] : null)}
                       />
