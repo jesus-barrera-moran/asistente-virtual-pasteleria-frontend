@@ -50,7 +50,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               children // Mostrar login o register
             ) : (
               <Box>
-                <Sidebar routes={routes} />
+                <Sidebar isPublicRoute={isPublicRoute} routes={routes} />
                 <Box
                   pt={{ base: '60px', md: '0px' }}
                   float="right"
