@@ -32,6 +32,7 @@ const EmployeesManager: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState<{ [key: number]: boolean }>({});
   const toast = useToast();
   const router = useRouter();
 
@@ -100,6 +101,47 @@ const EmployeesManager: React.FC = () => {
     );
   };
 
+  const handleSaveChanges = async (user: User) => {
+    try {
+      setSaving((prev) => ({ ...prev, [user.id]: true }));
+      const token = localStorage.getItem('token');
+  
+      const response = await fetch(`http://localhost:8000/users/${user.username}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          disabled: !user.enabled, // Asegúrate de que siga siendo un booleano
+          role: String(user.role),  // Convertir a cadena de texto
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Error al actualizar el usuario');
+      }
+  
+      toast({
+        title: 'Éxito',
+        description: 'Usuario actualizado correctamente.',
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
+    } catch (err) {
+      toast({
+        title: 'Error',
+        description: 'No se pudo actualizar el usuario.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setSaving((prev) => ({ ...prev, [user.id]: false }));
+    }
+  };
+  
   if (loading) {
     return (
       <Flex justify="center" align="center" height="100vh">
@@ -138,8 +180,8 @@ const EmployeesManager: React.FC = () => {
                           value={user.role}
                           onChange={(e) => handleRoleChange(user.id, e.target.value)}
                         >
-                          <option value="Admin">Administrador</option>
-                          <option value="Employee">Empleado</option>
+                          <option value="11">Administrador</option>
+                          <option value="12">Empleado</option>
                         </Select>
                       </Td>
                       <Td>
@@ -150,7 +192,12 @@ const EmployeesManager: React.FC = () => {
                         />
                       </Td>
                       <Td>
-                        <Button colorScheme="blue" size="sm">
+                        <Button
+                          colorScheme="blue"
+                          size="sm"
+                          onClick={() => handleSaveChanges(user)}
+                          isLoading={saving[user.id]}
+                        >
                           Guardar Cambios
                         </Button>
                       </Td>
