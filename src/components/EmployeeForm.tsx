@@ -13,6 +13,7 @@ import {
   Text,
   Spinner,
   Checkbox,
+  useToast, // Importar useToast
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
@@ -25,24 +26,28 @@ const EmployeeForm: React.FC = () => {
   const [currentPassword, setCurrentPassword] = useState<string>(''); 
   const [password, setPassword] = useState<string>(''); 
   const [confirmPassword, setConfirmPassword] = useState<string>(''); 
-  const [updatePasswordMode, setUpdatePasswordMode] = useState<boolean>(false); // Modo para actualización de contraseña
-  const [isEditing, setIsEditing] = useState<boolean>(false); // Modo para edición de perfil
+  const [updatePasswordMode, setUpdatePasswordMode] = useState<boolean>(false); 
+  const [isEditing, setIsEditing] = useState<boolean>(false); 
   const [loading, setLoading] = useState<boolean>(false); 
-  const [error, setError] = useState<string | null>(null);
   const [initialData, setInitialData] = useState<any>({}); 
   const router = useRouter();
   const pathname = usePathname();
+  const toast = useToast(); // Hook para manejar los toasts
 
-  // Efecto para manejar el modo de creación o perfil
   useEffect(() => {
     if (pathname === '/profile') {
-      // Si estamos en el perfil, cargamos los datos del usuario actual
       const fetchUserProfile = async () => {
         setLoading(true);
         try {
           const token = localStorage.getItem('token');
           if (!token) {
-            setError('No hay un token de autenticación.');
+            toast({
+              title: 'Error de autenticación',
+              description: 'No hay un token de autenticación.',
+              status: 'error',
+              duration: 5000,
+              isClosable: true,
+            });
             setLoading(false);
             return;
           }
@@ -55,10 +60,15 @@ const EmployeeForm: React.FC = () => {
             },
           });
 
-          // Check if response status is 401
           if (response.status === 401) {
             setLoading(false);
-            alert('La sesión ha expirado, por favor inicia sesión nuevamente');
+            toast({
+              title: 'Sesión expirada',
+              description: 'Por favor, inicia sesión nuevamente.',
+              status: 'error',
+              duration: 5000,
+              isClosable: true,
+            });
             localStorage.removeItem('token');
             router.push('/login');
             return;
@@ -77,10 +87,22 @@ const EmployeeForm: React.FC = () => {
               apellido: userData.apellido || '',
             });
           } else {
-            setError('No se pudieron cargar los datos del perfil.');
+            toast({
+              title: 'Error al cargar perfil',
+              description: 'No se pudieron cargar los datos del perfil.',
+              status: 'error',
+              duration: 5000,
+              isClosable: true,
+            });
           }
         } catch (err) {
-          setError('Hubo un problema al cargar los datos del perfil.');
+          toast({
+            title: 'Error del servidor',
+            description: 'Hubo un problema al cargar los datos del perfil.',
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+          });
         } finally {
           setLoading(false);
         }
@@ -91,20 +113,23 @@ const EmployeeForm: React.FC = () => {
   }, [pathname]);
 
   const handleSubmit = async () => {
-    // Validación de contraseñas solo si estamos en modo de actualización de contraseña
     if (updatePasswordMode && password !== confirmPassword) {
-      setError('Las contraseñas no coinciden');
+      toast({
+        title: 'Error de validación',
+        description: 'Las contraseñas no coinciden.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
       return;
     }
 
     setLoading(true);
-    setError(null);
 
     const token = localStorage.getItem('token');
 
     try {
       if (updatePasswordMode) {
-        // Actualización de contraseña
         const response = await fetch('http://localhost:8000/users/me/password', {
           method: 'PUT',
           headers: {
@@ -117,10 +142,15 @@ const EmployeeForm: React.FC = () => {
           }),
         });
 
-        // Check if response status is 401
         if (response.status === 401) {
           setLoading(false);
-          alert('La sesión ha expirado, por favor inicia sesión nuevamente');
+          toast({
+            title: 'Sesión expirada',
+            description: 'Por favor, inicia sesión nuevamente.',
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+          });
           localStorage.removeItem('token');
           router.push('/login');
           return;
@@ -128,34 +158,40 @@ const EmployeeForm: React.FC = () => {
 
         if (!response.ok) {
           const errorData = await response.json();
-          if (response.status === 400) {
-            setError('Contraseña actual incorrecta.');
-          } else if (response.status === 500) {
-            setError('Error interno del servidor.');
-          } else {
-            setError('Error desconocido.');
-          }
+          const errorMessage = errorData.detail || 'Error desconocido.';
+          toast({
+            title: 'Error en la actualización',
+            description: errorMessage,
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+          });
           return;
         }
 
-        // Salir del modo de actualización de contraseña
         setUpdatePasswordMode(false);
         setCurrentPassword('');
         setPassword('');
         setConfirmPassword('');
 
+        toast({
+          title: 'Contraseña actualizada',
+          description: 'Tu contraseña ha sido actualizada exitosamente.',
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
       } else {
-        // Actualización de perfil o creación de usuario
         const userPayload = {
           username,
           email,
           first_name: firstName,
           last_name: lastName,
-          ...(pathname === '/admin/employee' && { password }), // Incluir la contraseña si estamos creando un nuevo usuario
+          ...(pathname === '/admin/employee' && { password }), 
         };
 
         const endpoint = pathname === '/profile' ? '/users/me' : '/users';
-        const method = pathname === '/profile' ? 'PUT' : 'POST'; // PUT si estamos en perfil, POST si estamos creando un usuario
+        const method = pathname === '/profile' ? 'PUT' : 'POST'; 
 
         const response = await fetch(`http://localhost:8000${endpoint}`, {
           method,
@@ -166,10 +202,15 @@ const EmployeeForm: React.FC = () => {
           body: JSON.stringify(userPayload),
         });
 
-        // Check if response status is 401
         if (response.status === 401) {
           setLoading(false);
-          alert('La sesión ha expirado, por favor inicia sesión nuevamente');
+          toast({
+            title: 'Sesión expirada',
+            description: 'Por favor, inicia sesión nuevamente.',
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+          });
           localStorage.removeItem('token');
           router.push('/login');
           return;
@@ -177,24 +218,39 @@ const EmployeeForm: React.FC = () => {
 
         if (!response.ok) {
           const errorData = await response.json();
-          if (response.status === 400) {
-            setError('Faltan credenciales.');
-          } else if (response.status === 500) {
-            setError('Error interno del servidor.');
-          } else {
-            setError('Error desconocido.');
-          }
+          const errorMessage = errorData.detail || 'Error desconocido.';
+          toast({
+            title: 'Error en la solicitud',
+            description: errorMessage,
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+          });
           return;
         }
 
         if (pathname === '/profile') {
-          setIsEditing(false); // Volver al modo de solo lectura
+          setIsEditing(false);
         } else {
-          router.push('/admin/employees'); // Redirigir después de crear el usuario
+          router.push('/admin/employees');
         }
+
+        toast({
+          title: 'Usuario creado/actualizado',
+          description: 'Los datos se guardaron correctamente.',
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
       }
     } catch (error) {
-      setError('Hubo un problema al procesar la solicitud. Por favor, intenta nuevamente.');
+      toast({
+        title: 'Error en la solicitud',
+        description: 'Hubo un problema al procesar la solicitud. Por favor, intenta nuevamente.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
     } finally {
       setLoading(false);
     }
@@ -355,12 +411,6 @@ const EmployeeForm: React.FC = () => {
                     />
                   </FormControl>
                 </>
-              )}
-
-              {error && (
-                <Text color="red.500" fontSize="sm">
-                  {error}
-                </Text>
               )}
 
               <Stack direction="row" spacing={4} justifyContent={'center'}>
