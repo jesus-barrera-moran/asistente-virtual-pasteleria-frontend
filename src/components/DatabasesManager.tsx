@@ -13,6 +13,7 @@ import {
   Select,
   Spinner,
   useToast,
+  Text,
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 
@@ -20,7 +21,7 @@ type DatabaseConnection = {
   id: number;
   nombre: string;
   servidor: string;
-  puerto: string; // El puerto llega como string desde la API
+  puerto: string;
   usuario: string;
 };
 
@@ -28,6 +29,8 @@ const DatabaseConnectionsManager: React.FC = () => {
   const [connections, setConnections] = useState<DatabaseConnection[]>([]);
   const [selectedConnectionId, setSelectedConnectionId] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [isEditing, setIsEditing] = useState<boolean>(false); // Nuevo estado para controlar el modo edición
+  const [initialData, setInitialData] = useState<DatabaseConnection | null>(null); // Para restablecer datos si se cancela la edición
   const toast = useToast();
 
   useEffect(() => {
@@ -80,6 +83,11 @@ const DatabaseConnectionsManager: React.FC = () => {
   const handleConnectionChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedId = parseInt(event.target.value, 10);
     setSelectedConnectionId(selectedId);
+    const selectedConn = connections.find(conn => conn.id === selectedId);
+    if (selectedConn) {
+      setInitialData({ ...selectedConn }); // Guardar los datos iniciales para restaurar si se cancela
+    }
+    setIsEditing(false); // Cambiamos a modo solo lectura al seleccionar
   };
 
   const handleFieldChange = (field: keyof DatabaseConnection, value: string | number) => {
@@ -99,7 +107,19 @@ const DatabaseConnectionsManager: React.FC = () => {
       // Aquí podrías enviar los cambios al backend si es necesario
     }
 
+    setIsEditing(false); // Salir del modo edición después de guardar
     setLoading(false);
+  };
+
+  const handleCancelEdit = () => {
+    if (selectedConnectionId && initialData) {
+      setConnections((prevConnections) =>
+        prevConnections.map((conn) =>
+          conn.id === selectedConnectionId ? { ...initialData } : conn
+        )
+      );
+      setIsEditing(false); // Volver a modo solo lectura
+    }
   };
 
   const selectedConnection = connections.find((conn) => conn.id === selectedConnectionId);
@@ -129,50 +149,66 @@ const DatabaseConnectionsManager: React.FC = () => {
 
           {selectedConnection && (
             <Box mt={6}>
-              <FormControl id={`servidor-${selectedConnection.id}`} mb={4}>
-                <FormLabel>Servidor</FormLabel>
-                <Input
-                  type="text"
-                  value={selectedConnection.servidor}
-                  onChange={(e) => handleFieldChange('servidor', e.target.value)}
-                  placeholder="Servidor"
-                />
-              </FormControl>
+              {/* Modo solo lectura */}
+              {!isEditing ? (
+                <>
+                  <Text><strong>Servidor:</strong> {selectedConnection.servidor}</Text>
+                  <Text><strong>Puerto:</strong> {selectedConnection.puerto}</Text>
+                  <Text><strong>Usuario:</strong> {selectedConnection.usuario}</Text>
 
-              <Grid templateColumns="repeat(2, 1fr)" gap={4}>
-                <GridItem>
-                  <FormControl id={`puerto-${selectedConnection.id}`} mb={4}>
-                    <FormLabel>Puerto</FormLabel>
+                  <Button mt={6} colorScheme="blue" onClick={() => setIsEditing(true)}>
+                    Editar
+                  </Button>
+                </>
+              ) : (
+                <>
+                  {/* Modo edición */}
+                  <FormControl id={`servidor-${selectedConnection.id}`} mb={4}>
+                    <FormLabel>Servidor</FormLabel>
                     <Input
                       type="text"
-                      value={selectedConnection.puerto}
-                      onChange={(e) => handleFieldChange('puerto', e.target.value)} // Lo manejamos como string
-                      placeholder="Puerto"
+                      value={selectedConnection.servidor}
+                      onChange={(e) => handleFieldChange('servidor', e.target.value)}
+                      placeholder="Servidor"
                     />
                   </FormControl>
-                </GridItem>
 
-                <GridItem>
-                  <FormControl id={`usuario-${selectedConnection.id}`} mb={4}>
-                    <FormLabel>Usuario</FormLabel>
-                    <Input
-                      type="text"
-                      value={selectedConnection.usuario}
-                      onChange={(e) => handleFieldChange('usuario', e.target.value)}
-                      placeholder="Usuario"
-                    />
-                  </FormControl>
-                </GridItem>
-              </Grid>
+                  <Grid templateColumns="repeat(2, 1fr)" gap={4}>
+                    <GridItem>
+                      <FormControl id={`puerto-${selectedConnection.id}`} mb={4}>
+                        <FormLabel>Puerto</FormLabel>
+                        <Input
+                          type="text"
+                          value={selectedConnection.puerto}
+                          onChange={(e) => handleFieldChange('puerto', e.target.value)}
+                          placeholder="Puerto"
+                        />
+                      </FormControl>
+                    </GridItem>
 
-              <Button
-                mt={6}
-                colorScheme="blue"
-                isLoading={loading}
-                onClick={handleSaveChanges}
-              >
-                Guardar Cambios
-              </Button>
+                    <GridItem>
+                      <FormControl id={`usuario-${selectedConnection.id}`} mb={4}>
+                        <FormLabel>Usuario</FormLabel>
+                        <Input
+                          type="text"
+                          value={selectedConnection.usuario}
+                          onChange={(e) => handleFieldChange('usuario', e.target.value)}
+                          placeholder="Usuario"
+                        />
+                      </FormControl>
+                    </GridItem>
+                  </Grid>
+
+                  <Stack direction="row" spacing={4} justifyContent="center">
+                    <Button colorScheme="blue" onClick={handleSaveChanges}>
+                      Guardar Cambios
+                    </Button>
+                    <Button colorScheme="red" onClick={handleCancelEdit}>
+                      Cancelar
+                    </Button>
+                  </Stack>
+                </>
+              )}
             </Box>
           )}
         </Box>
