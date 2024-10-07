@@ -30,11 +30,14 @@ type User = {
 
 const EmployeesManager: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
+  const [originalRoles, setOriginalRoles] = useState<{ [key: number]: string }>({}); // Para almacenar los roles originales
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState<{ [key: number]: boolean }>({});
+  const [changes, setChanges] = useState<{ [key: number]: boolean }>({});
   const toast = useToast();
   const router = useRouter();
+  const currentUserRole = String(localStorage.getItem('id_rol')); // Rol del usuario logueado
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -68,6 +71,12 @@ const EmployeesManager: React.FC = () => {
         const filteredData = data.filter((user: User) => user.username !== usuario);
 
         setUsers(filteredData);
+        // Almacenamos los roles originales
+        const roles = filteredData.reduce((acc: { [key: number]: string }, user: User) => {
+          acc[user.id] = user.role;
+          return acc;
+        }, {});
+        setOriginalRoles(roles);
       } catch (err) {
         setError('Error al cargar los usuarios');
         toast({
@@ -91,6 +100,7 @@ const EmployeesManager: React.FC = () => {
         user.id === id ? { ...user, enabled: !user.enabled } : user
       )
     );
+    setChanges((prevChanges) => ({ ...prevChanges, [id]: true }));
   };
 
   const handleRoleChange = (id: number, newRole: string) => {
@@ -99,13 +109,14 @@ const EmployeesManager: React.FC = () => {
         user.id === id ? { ...user, role: newRole } : user
       )
     );
+    setChanges((prevChanges) => ({ ...prevChanges, [id]: true }));
   };
 
   const handleSaveChanges = async (user: User) => {
     try {
       setSaving((prev) => ({ ...prev, [user.id]: true }));
       const token = localStorage.getItem('token');
-  
+
       const response = await fetch(`http://localhost:8000/users/${user.username}`, {
         method: 'PATCH',
         headers: {
@@ -117,11 +128,11 @@ const EmployeesManager: React.FC = () => {
           role: String(user.role),  // Convertir a cadena de texto
         }),
       });
-  
+
       if (!response.ok) {
         throw new Error('Error al actualizar el usuario');
       }
-  
+
       toast({
         title: 'Éxito',
         description: 'Usuario actualizado correctamente.',
@@ -129,6 +140,9 @@ const EmployeesManager: React.FC = () => {
         duration: 5000,
         isClosable: true,
       });
+
+      setChanges((prevChanges) => ({ ...prevChanges, [user.id]: false }));
+      setOriginalRoles((prevRoles) => ({ ...prevRoles, [user.id]: user.role })); // Actualizamos el rol original
     } catch (err) {
       toast({
         title: 'Error',
@@ -141,7 +155,19 @@ const EmployeesManager: React.FC = () => {
       setSaving((prev) => ({ ...prev, [user.id]: false }));
     }
   };
-  
+
+  const isRoleReadOnly = (role: string, originalRole: string) => {
+    const rolesHierarchy: { [key: string]: number } = { '17': 1, '11': 2, '12': 3 };
+
+    // Asegurarse de que ambos roles están definidos en rolesHierarchy
+    if (!(originalRole in rolesHierarchy) || !(currentUserRole in rolesHierarchy)) {
+      return true; // Si el rol no está en la jerarquía, lo tratamos como solo lectura
+    }
+
+    // Usar el rol original para determinar si es solo lectura
+    return rolesHierarchy[currentUserRole] >= rolesHierarchy[originalRole];
+  };
+
   if (loading) {
     return (
       <Flex justify="center" align="center" height="100vh">
@@ -179,6 +205,7 @@ const EmployeesManager: React.FC = () => {
                         <Select
                           value={user.role}
                           onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                          isDisabled={isRoleReadOnly(user.role, originalRoles[user.id])} // Usar el rol original para verificar si debe ser de solo lectura
                         >
                           <option value="11">Administrador</option>
                           <option value="12">Empleado</option>
@@ -189,6 +216,7 @@ const EmployeesManager: React.FC = () => {
                           colorScheme="teal"
                           isChecked={user.enabled}
                           onChange={() => handleToggleEnabled(user.id)}
+                          isDisabled={isRoleReadOnly(user.role, originalRoles[user.id])} // Usar el rol original para verificar si debe ser de solo lectura
                         />
                       </Td>
                       <Td>
@@ -197,6 +225,7 @@ const EmployeesManager: React.FC = () => {
                           size="sm"
                           onClick={() => handleSaveChanges(user)}
                           isLoading={saving[user.id]}
+                          isDisabled={!changes[user.id]} // Desactivar si no se ha hecho ningún cambio
                         >
                           Guardar Cambios
                         </Button>
