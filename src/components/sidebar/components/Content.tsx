@@ -10,11 +10,12 @@ import {
   Img,
   Text,
   useColorModeValue,
+  useToast,
 } from '@chakra-ui/react';
 import Links from '@/components/sidebar/components/Links';
 import { PropsWithChildren } from 'react';
 import { IRoute } from '@/types/navigation';
-import { FiLogOut } from 'react-icons/fi';
+import { FiLogOut, FiCopy } from 'react-icons/fi'; // Importar icono de copiar
 import { useRouter } from 'next/navigation'; // Cambiado a next/navigation
 import { HSeparator } from '@/components/separator/Separator';
 
@@ -36,10 +37,14 @@ function SidebarContent(props: SidebarContent) {
     'none',
   );
   const router = useRouter();
+  const toast = useToast(); // Hook para mostrar mensajes
   const [userFullName, setUserFullName] = useState<string>('');
+  const [publicLink, setPublicLink] = useState<string>('');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
+    const id_pasteleria = localStorage.getItem('id_pasteleria');
+    
     if (token) {
       const user_name = localStorage.getItem('nombre') !== 'null' ? localStorage.getItem('nombre') : '';
       const user_lastname = localStorage.getItem('apellido') !== 'null' ? localStorage.getItem('apellido') : '';
@@ -51,9 +56,15 @@ function SidebarContent(props: SidebarContent) {
           : username
             ? username
             : 'Desconocido'
-      )
+      );
+      
+      // Generar el enlace público usando el host actual
+      if (id_pasteleria) {
+        const link = `${window.location.host}/publico/${id_pasteleria}`;
+        setPublicLink(link);
+      }
     }
-  }, [])
+  }, []);
 
   const handleLogout = () => {
     // Logout
@@ -67,6 +78,17 @@ function SidebarContent(props: SidebarContent) {
     router.push('/login');
   };
 
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(publicLink);
+    toast({
+      title: 'Enlace copiado',
+      description: 'El enlace público ha sido copiado al portapapeles.',
+      status: 'success',
+      duration: 3000,
+      isClosable: true,
+    });
+  };
+
   // SIDEBAR
   return (
     <Flex
@@ -78,14 +100,36 @@ function SidebarContent(props: SidebarContent) {
       maxW="285px"
       px="20px"
     >
-      <Img
-        src={logo1.src}
-        w="75px"
-        margin={'auto'}
-      />
+      {/* Botón para copiar el enlace público */}
+      <Button
+        variant="transparent"
+        border="1px solid"
+        borderColor={borderColor}
+        borderRadius="full"
+        w="34px"
+        h="34px"
+        px="0px"
+        minW="34px"
+        justifyContent={'center'}
+        alignItems="center"
+        onClick={handleCopyLink}
+        title="Copiar enlace público"
+      >
+        <Icon as={FiCopy} width="16px" height="16px" color="inherit" />
+      </Button>
+      <Img src={logo1.src} w="75px" margin={'auto'} />
 
       <Flex alignItems="center" flexDirection="column">
-        <Text textAlign="center" fontWeight="900" fontSize="24px" h="26px" w="246px" mb="40px" mt="20px" color={useColorModeValue('navy.700', 'white')}>
+        <Text
+          textAlign="center"
+          fontWeight="900"
+          fontSize="24px"
+          h="26px"
+          w="246px"
+          mb="40px"
+          mt="20px"
+          color={useColorModeValue('navy.700', 'white')}
+        >
           DANIELLE BAKERY
         </Text>
         <HSeparator mb="20px" w="284px" />
@@ -108,71 +152,6 @@ function SidebarContent(props: SidebarContent) {
           <Text color={textColor} fontSize="xs" fontWeight="600" me="10px">
             {userFullName}
           </Text>
-          {/* <Menu>
-            <MenuButton
-              as={Button}
-              variant="transparent"
-              aria-label=""
-              border="1px solid"
-              borderColor={borderColor}
-              borderRadius="full"
-              w="34px"
-              h="34px"
-              px="0px"
-              p="0px"
-              minW="34px"
-              me="10px"
-              justifyContent={'center'}
-              alignItems="center"
-              color={iconColor}
-            >
-              <Flex align="center" justifyContent="center">
-                <Icon
-                  as={MdOutlineSettings}
-                  width="18px"
-                  height="18px"
-                  color="inherit"
-                />
-              </Flex>
-            </MenuButton>
-            <MenuList
-              ms="-20px"
-              py="25px"
-              ps="20px"
-              pe="20px"
-              w="246px"
-              borderRadius="16px"
-              transform="translate(-19px, -62px)!important"
-              border="0px"
-              boxShadow={shadow}
-              bg={bgColor}
-            >
-              <Box mb="30px">
-                <Flex align="center" w="100%">
-                  <Icon
-                    as={MdOutlineManageAccounts}
-                    width="24px"
-                    height="24px"
-                    color={gray}
-                    me="12px"
-                    opacity={'0.4'}
-                  />
-                  <Link
-                    href="/profile"
-                    >
-                      <Text
-                        color={gray}
-                        fontWeight="500"
-                        fontSize="sm"
-                        opacity={'0.4'}
-                      >
-                        Perfil
-                      </Text>
-                    </Link>
-                </Flex>
-              </Box>
-            </MenuList>
-          </Menu> */}
           <Button
             variant="transparent"
             border="1px solid"
