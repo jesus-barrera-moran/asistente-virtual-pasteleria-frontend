@@ -64,11 +64,15 @@ const DocumentsManager: React.FC = () => {
 
   const handleFileChange = async (file: File | null) => {
     if (file && selectedDocumentId !== null) {
-      // Verificar el tipo MIME del archivo
-      if (!validFileTypes.includes(file.type)) {
+      const fileExtension = file.name.split('.').pop()?.toLowerCase();
+  
+      // Verificar tanto el MIME type como la extensión del archivo
+      const isValidFile = validFileTypes.includes(file.type) || fileExtension === 'md';
+      
+      if (!isValidFile) {
         toast({
           title: 'Tipo de archivo no válido',
-          description: `Por favor, selecciona un archivo de tipo válido. Los tipos permitidos son: ${validFileTypes.join(', ')}`,
+          description: `Por favor, selecciona un archivo de tipo válido. Los tipos permitidos son: .txt, .csv, .md, .docx`,
           status: 'error',
           duration: 5000,
           isClosable: true,
@@ -91,7 +95,7 @@ const DocumentsManager: React.FC = () => {
       const reader = new FileReader();
 
       // Si el archivo es un archivo de texto (.txt, .csv o .md)
-      if (file.type === 'text/plain' || file.type === 'text/csv' || file.type === 'text/markdown') {
+      if (file.type === 'text/plain' || file.type === 'text/csv' || fileExtension === 'md') {
         reader.onload = (event) => {
           const fileContent = event.target?.result as string;
 
