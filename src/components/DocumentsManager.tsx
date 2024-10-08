@@ -110,6 +110,16 @@ const DocumentsManager: React.FC = () => {
   const handleDocumentChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedId = parseInt(event.target.value, 10);
     setSelectedDocumentId(selectedId);
+  
+    // Buscar el documento seleccionado y actualizar el contenido
+    const selectedDocument = documents.find(doc => doc.id === selectedId);
+    if (selectedDocument) {
+      setDocuments(prevDocuments => 
+        prevDocuments.map(doc => 
+          doc.id === selectedId ? { ...doc, content: selectedDocument.content } : doc
+        )
+      );
+    }
   };
 
   const handleContentChange = (newContent: string) => {
@@ -207,15 +217,60 @@ const DocumentsManager: React.FC = () => {
 
     const selectedDocument = documents.find(doc => doc.id === selectedDocumentId);
     if (selectedDocument) {
-      console.log('Documento guardado:', selectedDocument);
+      try {
+        const token = localStorage.getItem('token');
+        const id_pasteleria = localStorage.getItem('id_pasteleria');
 
-      if (selectedDocument.file) {
-        console.log('Archivo cargado:', selectedDocument.file.name);
+        const response = await fetch('http://localhost:8000/writeFileContent', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            name: selectedDocument.title,  // Usar el título del documento como nombre del archivo
+            content: selectedDocument.content,  // Usar el contenido actual del documento
+          }),
+        });
+
+        if (response.status === 401) {
+          toast({
+            title: 'Sesión expirada',
+            description: 'Por favor, inicia sesión nuevamente.',
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+          });
+          localStorage.removeItem('token');
+          router.push('/login');
+          return;
+        }
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Error al guardar el documento');
+        }
+
+        toast({
+          title: 'Cambios guardados',
+          description: `El documento '${selectedDocument.title}' ha sido guardado exitosamente.`,
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: `No se pudo guardar el documento: ${(error as Error).message}`,
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
       }
     }
 
     setLoading(false);
-  };
+  };  
 
   const selectedDocument = documents.find(doc => doc.id === selectedDocumentId);
 
