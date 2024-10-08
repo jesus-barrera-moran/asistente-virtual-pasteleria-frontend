@@ -16,6 +16,8 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
+import DatabaseConnectionDetails from './DatabaseConnectionDetails';
+import { FaSave, FaTimes } from 'react-icons/fa';
 
 type DatabaseConnection = {
   id: number;
@@ -270,18 +272,14 @@ const DatabaseConnectionsManager: React.FC = () => {
             <Box mt={6}>
               {/* Modo solo lectura */}
               {!isEditing && !updatePasswordMode ? (
-                <>
-                  <Text><strong>Servidor:</strong> {selectedConnection.servidor}</Text>
-                  <Text><strong>Puerto:</strong> {selectedConnection.puerto}</Text>
-                  <Text><strong>Usuario:</strong> {selectedConnection.usuario}</Text>
-
-                  <Button mt={6} colorScheme="blue" onClick={() => setIsEditing(true)}>
-                    Editar
-                  </Button>
-                  <Button mt={6} bg="gray.400" color="white" _hover={{ bg: 'gray.500' }} onClick={() => setUpdatePasswordMode(true)}>
-                    Actualizar Clave
-                  </Button>
-                </>
+                <DatabaseConnectionDetails
+                  nombre={selectedConnection.nombre}
+                  servidor={selectedConnection.servidor}
+                  puerto={selectedConnection.puerto}
+                  usuario={selectedConnection.usuario}
+                  onEdit={() => setIsEditing(true)}
+                  onUpdatePassword={() => setUpdatePasswordMode(true)}
+                />
               ) : (
                 <>
                   {/* Modo edición */}
@@ -324,10 +322,10 @@ const DatabaseConnectionsManager: React.FC = () => {
                       </Grid>
 
                       <Stack direction="row" spacing={4} justifyContent="center">
-                        <Button colorScheme="blue" onClick={handleSaveChanges}>
+                        <Button leftIcon={<FaSave />} colorScheme="blue" onClick={handleSaveChanges}>
                           Guardar Cambios
                         </Button>
-                        <Button colorScheme="red" onClick={handleCancelEdit}>
+                        <Button leftIcon={<FaTimes />} colorScheme="red" onClick={handleCancelEdit}>
                           Cancelar
                         </Button>
                       </Stack>
@@ -358,10 +356,10 @@ const DatabaseConnectionsManager: React.FC = () => {
                       </FormControl>
 
                       <Stack direction="row" spacing={4} justifyContent="center">
-                        <Button colorScheme="blue" onClick={handleUpdatePassword}>
+                        <Button leftIcon={<FaSave />} colorScheme="blue" onClick={handleUpdatePassword}>
                           Actualizar Clave
                         </Button>
-                        <Button colorScheme="red" onClick={() => setUpdatePasswordMode(false)}>
+                        <Button leftIcon={<FaTimes />} colorScheme="red" onClick={() => setUpdatePasswordMode(false)}>
                           Cancelar
                         </Button>
                       </Stack>

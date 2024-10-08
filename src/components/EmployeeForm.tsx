@@ -18,6 +18,7 @@ import {
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import UserProfileView from './UserProfileView';
+import { FaSave, FaTimes } from 'react-icons/fa';
 
 const EmployeeForm: React.FC = () => {
   const [username, setUsername] = useState<string>(''); 
@@ -412,6 +413,7 @@ const EmployeeForm: React.FC = () => {
 
               <Stack direction="row" spacing={4} justifyContent={'center'}>
                 <Button
+                  leftIcon={<FaSave />}
                   bg="blue.400"
                   color="white"
                   _hover={{ bg: 'blue.500' }}
@@ -422,6 +424,7 @@ const EmployeeForm: React.FC = () => {
                 </Button>
                 {pathname === '/profile' && (
                   <Button
+                    leftIcon={<FaTimes />}
                     bg="red.400"
                     color="white"
                     _hover={{ bg: 'red.500' }}
