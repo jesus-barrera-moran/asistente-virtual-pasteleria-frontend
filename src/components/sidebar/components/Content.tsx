@@ -40,12 +40,14 @@ function SidebarContent(props: SidebarContent) {
   const [publicLink, setPublicLink] = useState<string>('');
   const [pastryEmail, setPastryEmail] = useState<string>('');
   const [pastryWebsite, setPastryWebsite] = useState<string>('');
+  const [pastryName, setPastryName] = useState<string>('');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     const id_pasteleria = localStorage.getItem('id_pasteleria');
     const email_pasteleria = localStorage.getItem('email_pasteleria');
     const website_pasteleria = localStorage.getItem('website_pasteleria');
+    const nombre_pasteleria = localStorage.getItem('nombre_pasteleria');
     
     if (token) {
       const user_name = localStorage.getItem('nombre') !== 'null' ? localStorage.getItem('nombre') : '';
@@ -59,18 +61,21 @@ function SidebarContent(props: SidebarContent) {
             ? username
             : 'Desconocido'
       );
-      
-      // Generar el enlace público usando el host actual
-      if (id_pasteleria) {
-        const link = `${window.location.host}/publico/${id_pasteleria}`;
-        setPublicLink(link);
-      }
-      if (email_pasteleria) {
-        setPastryEmail(email_pasteleria);
-      }
-      if (website_pasteleria) {
-        setPastryWebsite(website_pasteleria);
-      }
+    }
+
+    // Generar el enlace público usando el host actual
+    if (id_pasteleria) {
+      const link = `${window.location.host}/publico/${id_pasteleria}`;
+      setPublicLink(link);
+    }
+    if (email_pasteleria) {
+      setPastryEmail(email_pasteleria);
+    }
+    if (website_pasteleria) {
+      setPastryWebsite(website_pasteleria);
+    }
+    if (nombre_pasteleria) {
+      setPastryName(nombre_pasteleria);
     }
   }, []);
 
@@ -209,12 +214,12 @@ function SidebarContent(props: SidebarContent) {
           h="26px"
           w="246px"
           mb="40px"
-          mt="20px"
+          mt="10px"
           color={useColorModeValue('navy.700', 'white')}
         >
-          DANIELLE BAKERY
+          {pastryName.toUpperCase()}
         </Text>
-        <HSeparator mb="20px" w="284px" />
+        <HSeparator mt="10px" mb="20px" w="284px" />
       </Flex>
       <Stack direction="column" mb="auto" mt="8px">
         <Box ps="0px" pe={{ md: '0px', '2xl': '0px' }}>

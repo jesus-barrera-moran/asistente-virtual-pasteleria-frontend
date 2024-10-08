@@ -1,13 +1,13 @@
 'use client';
 import React, { ReactNode, useState, useEffect } from 'react';
-import { Box, Portal, useToast } from '@chakra-ui/react';
+import { Box, Portal, useToast, Flex, Spinner } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation'; // Cambiado a next/navigation
 import routes from '@/routes';
 import Sidebar from '@/components/sidebar/Sidebar';
 import Navbar from '@/components/navbar/NavbarAdmin';
 import Footer from '@/components/Footer'; // Importamos el nuevo Footer
 import { getActiveRoute, getActiveNavbar } from '@/utils/navigation';
-import { usePathname } from 'next/navigation'; // También desde next/navigation
+import { usePathname, useParams } from 'next/navigation'; // También desde next/navigation
 import '@/styles/App.css';
 import '@/styles/Contact.css';
 import '@/styles/Plugins.css';
@@ -19,6 +19,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   const router = useRouter(); // Cambiado a la versión correcta de next/navigation
   const [isAllowed, setIsAllowed] = useState(false);
   const toast = useToast();
+  const [loading, setLoading] = useState(true);
+  const { uuid } = useParams(); // Obtenemos el parámetro de la URL
 
   const isPublicRoute = pathname?.startsWith('/publico'); // Verifica si la ruta es de clientes
   const isExternal = pathname?.startsWith('/register') || pathname?.startsWith('/login'); // Rutas externas
@@ -26,7 +28,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   // Verificar si hay un token para rutas no públicas o para login/register
   useEffect(() => {
     const token = localStorage.getItem('token'); // Verificar la existencia del token
-    const id_pasteleria = localStorage.getItem('id_pasteleria');
+    const id_pasteleria = !isExternal
+      ? isPublicRoute
+        ? uuid
+        : localStorage.getItem('id_pasteleria')
+      : null;
 
     if (isExternal && token) {
       // Si está en login o register y ya tiene un token, redirigir a la raíz (/)
@@ -38,36 +44,47 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         router.push('/login');
       } else {
         setIsAllowed(true);
-
-        // Si el token está presente, hacemos la llamada al endpoint
-        if (id_pasteleria) {
-          fetchBakeryData(id_pasteleria, token);
-        }
       }
     } else {
       setIsAllowed(true); // Permitido en rutas públicas o externas sin token
     }
+
+    // Si el token está presente, hacemos la llamada al endpoint
+    if (id_pasteleria) {
+      fetchBakeryData(id_pasteleria);
+    }
   }, [isPublicRoute, isExternal, router]);
 
   // Función para hacer la llamada al endpoint de la pastelería
-  const fetchBakeryData = async (id_pasteleria: string, token: string) => {
+  const fetchBakeryData = async (id_pasteleria: any) => {
     try {
+      setLoading(true);
       const response = await fetch(`http://localhost:8000/pastelerias/${id_pasteleria}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
         },
       });
 
-      if (!response.ok) {
-        throw new Error('Error al obtener los datos de la pastelería');
+      if (response.status === 401) {
+        setLoading(false);
+        toast({
+          title: 'Sesión expirada',
+          description: 'La sesión ha expirado, por favor inicia sesión nuevamente.',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+        localStorage.removeItem('token');
+        router.push('/login');
+        return;
       }
 
       const data = await response.json();
 
       localStorage.setItem('email_pasteleria', data.email);
       localStorage.setItem('website_pasteleria', data.url_website);
+      localStorage.setItem('nombre_pasteleria', data.nombre);
 
       // toast({
       //   title: 'Datos obtenidos',
@@ -84,8 +101,22 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         duration: 3000,
         isClosable: true,
       });
+    } finally {
+      setLoading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <html lang="en">
+        <body id={'root'}>
+          <Flex justify="center" align="center" height="100vh">
+            <Spinner size="xl" thickness="4px" speed="0.65s" color="teal.500" />
+          </Flex>
+        </body>
+      </html>
+    );
+  }
 
   return (
     <html lang="en">
