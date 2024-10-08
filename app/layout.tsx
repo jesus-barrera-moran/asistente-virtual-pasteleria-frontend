@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'; // Cambiado a next/navigation
 import routes from '@/routes';
 import Sidebar from '@/components/sidebar/Sidebar';
 import Navbar from '@/components/navbar/NavbarAdmin';
+import Footer from '@/components/Footer'; // Importamos el nuevo Footer
 import { getActiveRoute, getActiveNavbar } from '@/utils/navigation';
 import { usePathname } from 'next/navigation'; // También desde next/navigation
 import '@/styles/App.css';
@@ -66,6 +67,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       const data = await response.json();
 
       localStorage.setItem('email_pasteleria', data.email);
+      localStorage.setItem('website_pasteleria', data.url_website);
 
       // toast({
       //   title: 'Datos obtenidos',
@@ -120,12 +122,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   </Portal>
                   <Box
                     mx="auto"
-                    p={{ base: '20px', md: '30px' }}
+                    p={{ base: '20px', md: '30px 30px 10px 30px' }}
                     pe="20px"
                     pt="50px"
                   >
                     {children}
                   </Box>
+                  {/* Agregamos el footer aquí */}
+                  <Footer />
                 </Box>
               </Box>
             )}

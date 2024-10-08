@@ -12,7 +12,7 @@ import {
   useColorModeValue,
   useToast,
 } from '@chakra-ui/react';
-import { FiLogOut, FiMail, FiLink } from 'react-icons/fi'; // Importar iconos para copiar enlace y email
+import { FiLogOut, FiMail, FiLink, FiGlobe } from 'react-icons/fi'; // Importar iconos para copiar enlace y email
 import { useRouter } from 'next/navigation';
 import Links from '@/components/sidebar/components/Links';
 import { PropsWithChildren } from 'react';
@@ -39,11 +39,13 @@ function SidebarContent(props: SidebarContent) {
   const [userFullName, setUserFullName] = useState<string>('');
   const [publicLink, setPublicLink] = useState<string>('');
   const [pastryEmail, setPastryEmail] = useState<string>('');
+  const [pastryWebsite, setPastryWebsite] = useState<string>('');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     const id_pasteleria = localStorage.getItem('id_pasteleria');
     const email_pasteleria = localStorage.getItem('email_pasteleria');
+    const website_pasteleria = localStorage.getItem('website_pasteleria');
     
     if (token) {
       const user_name = localStorage.getItem('nombre') !== 'null' ? localStorage.getItem('nombre') : '';
@@ -65,6 +67,9 @@ function SidebarContent(props: SidebarContent) {
       }
       if (email_pasteleria) {
         setPastryEmail(email_pasteleria);
+      }
+      if (website_pasteleria) {
+        setPastryWebsite(website_pasteleria);
       }
     }
   }, []);
@@ -101,6 +106,17 @@ function SidebarContent(props: SidebarContent) {
       isClosable: true,
     });
   };
+
+  const handleCopyWebsite = () => {
+    navigator.clipboard.writeText(pastryWebsite);
+    toast({
+      title: 'Sitio web copiado',
+      description: 'El sitio web ha sido copiado al portapapeles.',
+      status: 'success',
+      duration: 3000,
+      isClosable: true,
+    });
+  }
 
   const handleCopyEmail = () => {
     navigator.clipboard.writeText(pastryEmail);
@@ -143,6 +159,25 @@ function SidebarContent(props: SidebarContent) {
           mr={2} // Espaciado entre los botones
         >
           <Icon as={FiLink} width="16px" height="16px" color="inherit" />
+        </Button>
+
+        {/* Botón para copiar el sitio web de la pastelería */}
+        <Button
+          variant="transparent"
+          border="1px solid"
+          borderColor={borderColor}
+          borderRadius="full"
+          w="34px"
+          h="34px"
+          px="0px"
+          minW="34px"
+          justifyContent={'center'}
+          alignItems="center"
+          onClick={handleCopyWebsite}
+          title="Copiar sitio web de la pastelería"
+          mr={2} // Espaciado entre los botones
+        >
+          <Icon as={FiGlobe} width="16px" height="16px" color="inherit" />
         </Button>
 
         {/* Botón para copiar el email de la pastelería */}
