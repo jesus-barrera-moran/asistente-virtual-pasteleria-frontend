@@ -17,6 +17,7 @@ import {
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import UserProfileView from './UserProfileView';
 
 const EmployeeForm: React.FC = () => {
   const [username, setUsername] = useState<string>(''); 
@@ -287,18 +288,14 @@ const EmployeeForm: React.FC = () => {
         <Box rounded="lg" bg="none" p={8}>
           {/* Modo perfil: solo lectura con opciones de edición */}
           {pathname === '/profile' && !isEditing && !updatePasswordMode ? (
-            <Stack spacing={4}>
-              <Text><strong>Nombre:</strong> {firstName}</Text>
-              <Text><strong>Apellido:</strong> {lastName}</Text>
-              <Text><strong>Nombre de Usuario:</strong> {username}</Text>
-              <Text><strong>Email:</strong> {email}</Text>
-              <Button onClick={toggleEdit} bg="blue.400" color="white" _hover={{ bg: 'blue.500' }}>
-                Editar Perfil
-              </Button>
-              <Button onClick={() => setUpdatePasswordMode(true)} bg="gray.400" color="white" _hover={{ bg: 'gray.500' }}>
-                Actualizar Contraseña
-              </Button>
-            </Stack>
+            <UserProfileView 
+              firstName={firstName}
+              lastName={lastName}
+              username={username}
+              email={email}
+              toggleEdit={toggleEdit}
+              setUpdatePasswordMode={setUpdatePasswordMode}
+            />
           ) : (
             <Stack spacing={4}>
               {/* Modo de edición de perfil o creación de usuario */}
