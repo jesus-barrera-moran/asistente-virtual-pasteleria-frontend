@@ -12,16 +12,14 @@ import {
   useColorModeValue,
   useToast,
 } from '@chakra-ui/react';
+import { FiLogOut, FiMail, FiLink } from 'react-icons/fi'; // Importar iconos para copiar enlace y email
+import { useRouter } from 'next/navigation';
 import Links from '@/components/sidebar/components/Links';
 import { PropsWithChildren } from 'react';
 import { IRoute } from '@/types/navigation';
-import { FiLogOut, FiCopy } from 'react-icons/fi'; // Importar icono de copiar
-import { useRouter } from 'next/navigation'; // Cambiado a next/navigation
 import { HSeparator } from '@/components/separator/Separator';
 
 import logo1 from '../../../../public/img/chat/Logo-1.png';
-
-// FUNCTIONS
 
 interface SidebarContent extends PropsWithChildren {
   routes: IRoute[];
@@ -40,10 +38,12 @@ function SidebarContent(props: SidebarContent) {
   const toast = useToast(); // Hook para mostrar mensajes
   const [userFullName, setUserFullName] = useState<string>('');
   const [publicLink, setPublicLink] = useState<string>('');
+  const [pastryEmail, setPastryEmail] = useState<string>('');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     const id_pasteleria = localStorage.getItem('id_pasteleria');
+    const email_pasteleria = localStorage.getItem('email_pasteleria');
     
     if (token) {
       const user_name = localStorage.getItem('nombre') !== 'null' ? localStorage.getItem('nombre') : '';
@@ -62,6 +62,9 @@ function SidebarContent(props: SidebarContent) {
       if (id_pasteleria) {
         const link = `${window.location.host}/publico/${id_pasteleria}`;
         setPublicLink(link);
+      }
+      if (email_pasteleria) {
+        setPastryEmail(email_pasteleria);
       }
     }
   }, []);
@@ -99,6 +102,17 @@ function SidebarContent(props: SidebarContent) {
     });
   };
 
+  const handleCopyEmail = () => {
+    navigator.clipboard.writeText(pastryEmail);
+    toast({
+      title: 'Email copiado',
+      description: 'El email ha sido copiado al portapapeles.',
+      status: 'success',
+      duration: 3000,
+      isClosable: true,
+    });
+  };
+
   // SIDEBAR
   return (
     <Flex
@@ -110,23 +124,46 @@ function SidebarContent(props: SidebarContent) {
       maxW="285px"
       px="20px"
     >
-      {/* Botón para copiar el enlace público */}
-      <Button
-        variant="transparent"
-        border="1px solid"
-        borderColor={borderColor}
-        borderRadius="full"
-        w="34px"
-        h="34px"
-        px="0px"
-        minW="34px"
-        justifyContent={'center'}
-        alignItems="center"
-        onClick={handleCopyLink}
-        title="Copiar enlace público"
-      >
-        <Icon as={FiCopy} width="16px" height="16px" color="inherit" />
-      </Button>
+      {/* Flex para mantener los íconos de copiar alineados horizontalmente */}
+      <Flex direction="row" justifyContent="space-between" alignItems="center">
+        {/* Botón para copiar el enlace público */}
+        <Button
+          variant="transparent"
+          border="1px solid"
+          borderColor={borderColor}
+          borderRadius="full"
+          w="34px"
+          h="34px"
+          px="0px"
+          minW="34px"
+          justifyContent={'center'}
+          alignItems="center"
+          onClick={handleCopyLink}
+          title="Copiar enlace público"
+          mr={2} // Espaciado entre los botones
+        >
+          <Icon as={FiLink} width="16px" height="16px" color="inherit" />
+        </Button>
+
+        {/* Botón para copiar el email de la pastelería */}
+        <Button
+          variant="transparent"
+          border="1px solid"
+          borderColor={borderColor}
+          borderRadius="full"
+          w="34px"
+          h="34px"
+          px="0px"
+          minW="34px"
+          justifyContent={'center'}
+          alignItems="center"
+          onClick={handleCopyEmail}
+          title="Copiar email de la pastelería"
+        >
+          <Icon as={FiMail} width="16px" height="16px" color="inherit" />
+        </Button>
+      </Flex>
+
       <Img src={logo1.src} w="75px" margin={'0 auto'} />
 
       <Flex alignItems="center" flexDirection="column">
