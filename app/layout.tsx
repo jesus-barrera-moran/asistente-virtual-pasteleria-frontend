@@ -146,7 +146,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   <Portal>
                     <Box>
                       <Navbar
-                        brandText={getActiveRoute(routes, pathname)}
+                        brandText={getActiveRoute(routes, pathname, isPublicRoute)}
                         secondary={getActiveNavbar(routes, pathname)}
                       />
                     </Box>

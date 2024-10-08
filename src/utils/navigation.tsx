@@ -17,9 +17,11 @@ export const findCurrentRoute = (
   }
 };
 
-export const getActiveRoute = (routes: IRoute[], pathname: string): string => {
+export const getActiveRoute = (routes: IRoute[], pathname: string, isPublicRoute?: boolean): string => {
   const route = findCurrentRoute(routes, pathname);
-  return route?.name || 'Default Brand Text';
+  return isPublicRoute === true
+    ? 'Asistente'
+    : route?.name || 'Default Brand Text';
 };
 
 export const getActiveNavbar = (
