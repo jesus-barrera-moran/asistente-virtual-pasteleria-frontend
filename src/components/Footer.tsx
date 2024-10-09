@@ -61,7 +61,7 @@ export default function Footer() {
             variant="ghost"
             as="a"
             // PENDIENTE: Cambiar el correo de soporte
-            href="mailto:soporte@pasteleria.com"
+            href="mailto:asistente.virtual.pastelerias@gmail.com"
             me={{ base: '10px', md: '20px' }}
           />
         </Tooltip>
