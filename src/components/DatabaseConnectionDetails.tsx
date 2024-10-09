@@ -11,10 +11,11 @@ import {
     Text,
     Icon,
   } from '@chakra-ui/react';
-  import { FaServer, FaNetworkWired, FaUser, FaEdit, FaLock, FaCheckCircle } from 'react-icons/fa';
+  import { FaServer, FaNetworkWired, FaUser, FaEdit, FaLock, FaCheckCircle, FaDatabase } from 'react-icons/fa';
 
   interface DatabaseConnectionDetailsProps {
     loading: boolean;
+    categoria: string;
     nombre: string;
     servidor: string;
     puerto: string;
@@ -26,6 +27,7 @@ import {
 
   const DatabaseConnectionDetails: React.FC<DatabaseConnectionDetailsProps> = ({
     loading,
+    categoria,
     nombre,
     servidor,
     puerto,
@@ -37,13 +39,25 @@ import {
     return (
       <Stack spacing={6}>
         <Text fontSize="2xl" fontWeight="bold" textAlign="center" mb={4}>
-            {nombre.toUpperCase()}
+            {categoria.toUpperCase()}
         </Text>
         <Divider />
 
         <Box>
           <Table variant="simple" size="md">
             <Tbody>
+              <Tr>
+                <Td>
+                  <Flex align="center">
+                    <Icon as={FaDatabase} color="blue.400" mr={2} />
+                    <Text fontWeight="semibold" color="gray.600">
+                      Nombre:
+                    </Text>
+                  </Flex>
+                </Td>
+                <Td>{nombre}</Td>
+              </Tr>
+
               <Tr>
                 <Td>
                   <Flex align="center">

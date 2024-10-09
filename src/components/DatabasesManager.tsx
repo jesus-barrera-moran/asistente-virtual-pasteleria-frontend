@@ -21,6 +21,7 @@ import { FaSave, FaTimes } from 'react-icons/fa';
 
 type DatabaseConnection = {
   id: number;
+  categoria: string;
   nombre: string;
   servidor: string;
   puerto: string;
@@ -305,7 +306,7 @@ const DatabaseConnectionsManager: React.FC = () => {
             <Select placeholder="Selecciona una base de datos" onChange={handleConnectionChange}>
               {connections.map((conn) => (
                 <option key={conn.id} value={conn.id}>
-                  {conn.nombre}
+                  {conn.categoria}
                 </option>
               ))}
             </Select>
@@ -317,6 +318,7 @@ const DatabaseConnectionsManager: React.FC = () => {
               {!isEditing && !updatePasswordMode ? (
                 <DatabaseConnectionDetails
                   loading={loading}
+                  categoria={selectedConnection.categoria}
                   nombre={selectedConnection.nombre}
                   servidor={selectedConnection.servidor}
                   puerto={selectedConnection.puerto}
@@ -330,6 +332,16 @@ const DatabaseConnectionsManager: React.FC = () => {
                   {/* Modo edición */}
                   {!updatePasswordMode && (
                     <>
+                      <FormControl id={`nombre-${selectedConnection.id}`} mb={4}>
+                        <FormLabel>Nombre</FormLabel>
+                        <Input
+                          type="text"
+                          value={selectedConnection.nombre}
+                          onChange={(e) => handleFieldChange('nombre', e.target.value)}
+                          placeholder="Nombre de la conexión"
+                        />
+                      </FormControl>
+
                       <FormControl id={`servidor-${selectedConnection.id}`} mb={4}>
                         <FormLabel>Servidor</FormLabel>
                         <Input
