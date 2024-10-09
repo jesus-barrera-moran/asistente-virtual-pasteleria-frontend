@@ -19,11 +19,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   const router = useRouter(); // Cambiado a la versión correcta de next/navigation
   const [isAllowed, setIsAllowed] = useState(false);
   const toast = useToast();
-  const [loading, setLoading] = useState(true);
   const { uuid } = useParams(); // Obtenemos el parámetro de la URL
 
   const isPublicRoute = pathname?.startsWith('/publico'); // Verifica si la ruta es de clientes
   const isExternal = pathname?.startsWith('/register') || pathname?.startsWith('/login'); // Rutas externas
+
+  const [loading, setLoading] = useState(!isExternal); // Estado de carga
 
   // Verificar si hay un token para rutas no públicas o para login/register
   useEffect(() => {

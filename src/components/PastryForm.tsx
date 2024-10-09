@@ -1,3 +1,4 @@
+'use client';
 import {
   Box,
   Button,
@@ -21,7 +22,6 @@ import { useRouter } from 'next/navigation';
 
 const PastryForm: React.FC = () => {
   const [name, setName] = useState<string>('');
-  const [ownerId, setOwnerId] = useState<number>(0);
   const [email, setEmail] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
   const [address, setAddress] = useState<string>('');
@@ -29,10 +29,9 @@ const PastryForm: React.FC = () => {
   const [postalCode, setPostalCode] = useState<number>(0);
   const [websiteUrl, setWebsiteUrl] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
-  const [menuLogo, setMenuLogo] = useState<any>();
-  const [backgroudLogo, setBackgroundLogo] = useState<any>();
+  const [menuLogo, setMenuLogo] = useState<File | null>(null); // Cambiado para aceptar archivos
+  const [backgroundLogo, setBackgroundLogo] = useState<File | null>(null); // Cambiado para aceptar archivos
 
-  // Estado para mostrar la contraseña generada
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [adminPassword, setAdminPassword] = useState<string>('');
   const [adminsUser, setAdminsUser] = useState<string>('');
@@ -42,25 +41,29 @@ const PastryForm: React.FC = () => {
   const handleSubmit = async () => {
     setLoading(true);
   
-    // Crear el objeto con los datos que se enviarán en la solicitud
-    const newPastry = {
-      nombre: name,
-      email,
-      telefono: String(phone),
-      direccion: address,
-      ciudad: city,
-      codigo_postal: postalCode,
-      url_website: websiteUrl,
-    };
+    // Crear el objeto FormData y agregar los datos y archivos
+    const formData = new FormData();
+    formData.append('nombre', name);
+    formData.append('email', email);
+    formData.append('telefono', String(phone));
+    formData.append('direccion', address);
+    formData.append('ciudad', city);
+    formData.append('codigo_postal', String(postalCode));
+    formData.append('url_website', websiteUrl);
+  
+    // Agregar los archivos si están presentes
+    if (menuLogo) {
+      formData.append('logo_menu', menuLogo); // Aquí usamos el nombre del campo adecuado para tu API
+    }
+    if (backgroundLogo) {
+      formData.append('logo_fondo', backgroundLogo); // Aquí también
+    }
   
     try {
-      // Llamar al endpoint con fetch
+      // Enviar la solicitud con FormData
       const response = await fetch('http://localhost:8000/pastelerias', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json', // El contenido es JSON
-        },
-        body: JSON.stringify(newPastry), // Convertimos el objeto a JSON
+        body: formData, // Enviamos formData en lugar de JSON
       });
   
       if (response.ok) {
@@ -68,7 +71,6 @@ const PastryForm: React.FC = () => {
         
         setAdminsUser(data.usuario);
         setAdminPassword(data.clave);
-
         setShowPassword(true);
       } else {
         console.error('Error al crear la pastelería:', response.status);
@@ -76,7 +78,7 @@ const PastryForm: React.FC = () => {
     } catch (error) {
       console.error('Error al realizar la solicitud:', error);
     } finally {
-      setLoading(false); // Parar el estado de carga una vez finalizado
+      setLoading(false);
     }
   };
 
@@ -98,14 +100,14 @@ const PastryForm: React.FC = () => {
               Contraseña: {adminPassword}
             </Text>
             <Text fontSize="md" textAlign="center" mt={4}>
-              Estas credenciales solo se mostrará una vez, asegúrate de guardarlas.
+              Estas credenciales solo se mostrarán una vez, asegúrate de guardarlas.
             </Text>
             <Stack mt={8} spacing={10}>
               <Button
                 bg="blue.400"
                 color="white"
                 _hover={{ bg: 'blue.500' }}
-                onClick={() => { router.push('/login') }} // Para ocultar esta pantalla
+                onClick={() => { router.push('/login') }}
               >
                 Ir a Inicio de Sesión
               </Button>
@@ -198,13 +200,13 @@ const PastryForm: React.FC = () => {
             </FormControl>
 
             <FormControl id="websiteUrl">
-                <FormLabel>Sitio Web</FormLabel>
-                <Input
+              <FormLabel>Sitio Web</FormLabel>
+              <Input
                 type="url"
                 value={websiteUrl}
                 onChange={(e) => setWebsiteUrl(e.target.value)}
                 placeholder="URL del sitio web"
-                />
+              />
             </FormControl>
 
             <Grid templateColumns="repeat(2, 1fr)" gap={4}>
@@ -232,9 +234,9 @@ const PastryForm: React.FC = () => {
                         />
                       </label>
                     </Box>
-                    {menuLogo?.file ? (
+                    {menuLogo ? (
                       <>
-                        <Text>{menuLogo?.file.name}</Text>
+                        <Text>{menuLogo.name}</Text>
                         <IconButton
                           aria-label="Eliminar archivo"
                           icon={<FiTrash />}
@@ -273,9 +275,9 @@ const PastryForm: React.FC = () => {
                         />
                       </label>
                     </Box>
-                    {backgroudLogo?.file ? (
+                    {backgroundLogo ? (
                       <>
-                        <Text>{backgroudLogo?.file.name}</Text>
+                        <Text>{backgroundLogo.name}</Text>
                         <IconButton
                           aria-label="Eliminar archivo"
                           icon={<FiTrash />}
@@ -295,9 +297,7 @@ const PastryForm: React.FC = () => {
               <Button
                 bg="blue.400"
                 color="white"
-                _hover={{
-                  bg: 'blue.500',
-                }}
+                _hover={{ bg: 'blue.500' }}
                 onClick={handleSubmit}
                 isLoading={loading}
               >
