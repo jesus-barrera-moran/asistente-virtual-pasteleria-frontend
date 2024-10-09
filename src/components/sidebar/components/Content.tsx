@@ -41,6 +41,13 @@ function SidebarContent(props: SidebarContent) {
   const [pastryEmail, setPastryEmail] = useState<string>('');
   const [pastryWebsite, setPastryWebsite] = useState<string>('');
   const [pastryName, setPastryName] = useState<string>('');
+  const [logoMenu, setLogoMenu] = useState<string>('');
+
+  const logo_menu = localStorage.getItem('logo_menu');
+
+  useEffect(() => {
+    setLogoMenu(logo_menu ? logo_menu : '');
+  }, [logo_menu]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -204,7 +211,7 @@ function SidebarContent(props: SidebarContent) {
         </Button>
       </Flex>
 
-      <Img src={logo1.src} w="75px" margin={'0 auto'} />
+      {logoMenu && (<Img src={logo1.src} w="75px" margin={'0 auto'} />)}
 
       <Flex alignItems="center" flexDirection="column">
         <Text

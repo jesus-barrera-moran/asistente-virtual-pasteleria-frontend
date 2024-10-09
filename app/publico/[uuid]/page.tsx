@@ -1,5 +1,6 @@
 'use client';
 /*eslint-disable*/
+import React, { useEffect } from 'react';
 import MessageBoxChat from '@/components/MessageBox';
 import {
   Button,
@@ -14,7 +15,6 @@ import {
 import { useState } from 'react';
 import { useRouter, usePathname, useParams } from 'next/navigation';
 import { MdAutoAwesome, MdPerson } from 'react-icons/md';
-import logo2 from '../../../public/img/chat/Logo-2.png';
 
 export default function Chat(props: { apiKeyApp: string }) {
   // Input States
@@ -29,6 +29,7 @@ export default function Chat(props: { apiKeyApp: string }) {
   const pathname = usePathname();
   const { uuid } = useParams();
   const toast = useToast(); // Hook para mostrar mensajes de error/success
+  const [logoFondo, setLogoFondo] = useState<string>('');
 
   const borderColor = useColorModeValue('gray.200', 'whiteAlpha.200');
   const inputColor = useColorModeValue('navy.700', 'white');
@@ -38,6 +39,12 @@ export default function Chat(props: { apiKeyApp: string }) {
     { color: 'gray.500' },
     { color: 'whiteAlpha.600' },
   );
+
+  const logo_fondo = localStorage.getItem('logo_fondo');
+
+  useEffect(() => {
+    setLogoFondo(logo_fondo ? logo_fondo : '');
+  }, [logo_fondo]);
 
   const handleTranslate = async () => {
     setInputCode('');
@@ -136,14 +143,14 @@ export default function Chat(props: { apiKeyApp: string }) {
       position="relative"
       h={{ base: '85vh', '2xl': '85vh' }}
     >
-      <Img
-        src={logo2.src}
+      {logoFondo && (<Img
+        src={logoFondo}
         position={'absolute'}
         w="700px"
         left="50%"
         top="50%"
         transform={'translate(-50%, -50%)'}
-      />
+      />)}
       <Flex
         direction="column"
         mx="auto"
