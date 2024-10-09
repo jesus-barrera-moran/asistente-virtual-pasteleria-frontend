@@ -11,24 +11,28 @@ import {
     Text,
     Icon,
   } from '@chakra-ui/react';
-  import { FaServer, FaNetworkWired, FaUser, FaEdit, FaLock } from 'react-icons/fa';
-  
+  import { FaServer, FaNetworkWired, FaUser, FaEdit, FaLock, FaCheckCircle } from 'react-icons/fa';
+
   interface DatabaseConnectionDetailsProps {
+    loading: boolean;
     nombre: string;
     servidor: string;
     puerto: string;
     usuario: string;
     onEdit: () => void;
     onUpdatePassword: () => void;
+    onTestConnection: () => void;
   }
-  
+
   const DatabaseConnectionDetails: React.FC<DatabaseConnectionDetailsProps> = ({
+    loading,
     nombre,
     servidor,
     puerto,
     usuario,
     onEdit,
     onUpdatePassword,
+    onTestConnection,
   }) => {
     return (
       <Stack spacing={6}>
@@ -51,7 +55,7 @@ import {
                 </Td>
                 <Td>{servidor}</Td>
               </Tr>
-  
+
               <Tr>
                 <Td>
                   <Flex align="center">
@@ -63,7 +67,7 @@ import {
                 </Td>
                 <Td>{puerto}</Td>
               </Tr>
-  
+
               <Tr>
                 <Td>
                   <Flex align="center">
@@ -78,7 +82,7 @@ import {
             </Tbody>
           </Table>
         </Box>
-  
+
         {/* Botones para editar y actualizar clave */}
         <Flex justify="center" mt={4}>
           <Button
@@ -97,13 +101,25 @@ import {
             bg="gray.400"
             color="white"
             _hover={{ bg: 'gray.500' }}
+            mr={3}
           >
             Actualizar Clave
+          </Button>
+
+          {/* Botón para probar la conexión */}
+          <Button
+            leftIcon={<FaCheckCircle />}
+            onClick={onTestConnection}
+            bg="green.400"
+            color="white"
+            _hover={{ bg: 'green.500' }}
+            isLoading={loading}
+          >
+            Probar Conexión
           </Button>
         </Flex>
       </Stack>
     );
   };
-  
+
   export default DatabaseConnectionDetails;
-  

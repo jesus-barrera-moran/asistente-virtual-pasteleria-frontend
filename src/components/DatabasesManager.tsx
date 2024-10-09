@@ -230,7 +230,50 @@ const DatabaseConnectionsManager: React.FC = () => {
       setLoading(false);
     }
   };
-  
+
+  // Función para probar la conexión a la base de datos
+  const handleTestConnection = async () => {
+    if (!selectedConnectionId) return;
+
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const id_pasteleria = localStorage.getItem('id_pasteleria');
+
+      const response = await fetch(
+        `http://localhost:8000/pastelerias/${id_pasteleria}/bases-datos/${selectedConnectionId}/probar-conexion`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Error al probar la conexión a la base de datos');
+      }
+
+      const data = await response.json();
+      toast({
+        title: 'Conexión exitosa',
+        description: data.message,
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'No se pudo conectar a la base de datos. Verifique los datos e intente nuevamente.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCancelEdit = () => {
     if (selectedConnectionId && initialData) {
@@ -273,12 +316,14 @@ const DatabaseConnectionsManager: React.FC = () => {
               {/* Modo solo lectura */}
               {!isEditing && !updatePasswordMode ? (
                 <DatabaseConnectionDetails
+                  loading={loading}
                   nombre={selectedConnection.nombre}
                   servidor={selectedConnection.servidor}
                   puerto={selectedConnection.puerto}
                   usuario={selectedConnection.usuario}
                   onEdit={() => setIsEditing(true)}
                   onUpdatePassword={() => setUpdatePasswordMode(true)}
+                  onTestConnection={handleTestConnection} // Pasamos la función al componente
                 />
               ) : (
                 <>
