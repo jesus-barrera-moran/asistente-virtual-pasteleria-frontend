@@ -277,14 +277,14 @@ const EmployeeForm: React.FC = () => {
   // Si está cargando los datos del perfil, mostramos el spinner
   if (loading) {
     return (
-      <Flex justify="center" align="center" height="100vh">
+      <Flex justify="center" align="center" height="85vh">
         <Spinner size="xl" thickness="4px" speed="0.65s" color="teal.500" />
       </Flex>
     );
   }
 
   return (
-    <Flex align="center" justify="center" bg="none">
+    <Flex minH="85vh" align="start" justify="center" bg="none">
       <Stack spacing={8} mx="auto" maxW="lg" bg="none" pt={16} px={6}>
         <Box rounded="lg" bg="none" p={8}>
           {/* Modo perfil: solo lectura con opciones de edición */}

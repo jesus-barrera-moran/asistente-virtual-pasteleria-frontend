@@ -222,14 +222,14 @@ const EmployeesManager: React.FC = () => {
 
   if (loading) {
     return (
-      <Flex justify="center" align="center" height="100vh">
+      <Flex justify="center" align="center" height="85vh">
         <Spinner size="xl" thickness="4px" speed="0.65s" color="teal.500" />
       </Flex>
     );
   }
 
   return (
-    <Flex align="center" justify="center" bg="none">
+    <Flex minH="85vh" align="start" justify="center" bg="none">
       <Stack spacing={8} mx="auto" w="100%" bg="none" maxW="1000px" pt={16} px={6}>
         <Box w="100%" maxW="1000px" mx="auto" p={6} bg="none" rounded="lg">
           <Stack align="center">
