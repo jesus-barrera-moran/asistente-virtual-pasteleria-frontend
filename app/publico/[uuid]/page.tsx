@@ -141,7 +141,7 @@ export default function Chat(props: { apiKeyApp: string }) {
       pt={{ base: '70px', md: '0px' }}
       direction="column"
       position="relative"
-      h={{ base: '85vh', '2xl': '85vh' }}
+      minH={{ base: '85vh', '2xl': '85vh' }}
     >
       {logoFondo && (<Img
         src={logoFondo}
@@ -155,7 +155,7 @@ export default function Chat(props: { apiKeyApp: string }) {
         direction="column"
         mx="auto"
         w={{ base: '100%', md: '100%', xl: '100%' }}
-        minH={{ base: '70vh', '2xl': '85vh' }}
+        minH={{ base: '85vh', '2xl': '85vh' }}
         maxW="1000px"
         pt="75px"
         gap="10px"
