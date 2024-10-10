@@ -266,7 +266,7 @@ const DatabaseConnectionsManager: React.FC = () => {
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'No se pudo conectar a la base de datos. Verifique los datos e intente nuevamente.',
+        description: 'No se pudo conectar a la base de datos. Verifique los datos de conexión y la accesibilidad a la base de datos e intente nuevamente.',
         status: 'error',
         duration: 5000,
         isClosable: true,
