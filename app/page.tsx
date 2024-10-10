@@ -15,6 +15,7 @@ import {
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { MdAutoAwesome, MdPerson } from 'react-icons/md';
+import config from '../src/config/env';
 
 export default function Chat(props: { apiKeyApp: string }) {
   // Input States
@@ -59,7 +60,7 @@ export default function Chat(props: { apiKeyApp: string }) {
       const token = localStorage.getItem('token');
 
       // -------------- Fetch --------------
-      const response = await fetch('http://localhost:8000/asistente/invoke', {
+      const response = await fetch(`${config.backendHost}/asistente/invoke`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

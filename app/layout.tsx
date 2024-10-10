@@ -13,6 +13,7 @@ import '@/styles/Contact.css';
 import '@/styles/Plugins.css';
 import '@/styles/MiniCalendar.css';
 import AppWrappers from './AppWrappers';
+import config from '../src/config/env';
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -60,7 +61,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   const fetchBakeryData = async (id_pasteleria: any) => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:8000/pastelerias/${id_pasteleria}`, {
+      const response = await fetch(`${config.backendHost}/pastelerias/${id_pasteleria}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

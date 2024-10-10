@@ -15,6 +15,7 @@ import {
 import { useState } from 'react';
 import { useRouter, usePathname, useParams } from 'next/navigation';
 import { MdAutoAwesome, MdPerson } from 'react-icons/md';
+import config from '../../../src/config/env';
 
 export default function Chat(props: { apiKeyApp: string }) {
   // Input States
@@ -62,7 +63,7 @@ export default function Chat(props: { apiKeyApp: string }) {
       const token = localStorage.getItem('token');
 
       // -------------- Fetch --------------
-      const response = await fetch(`http://localhost:8000/atencion_cliente/invoke/${uuid}`, {
+      const response = await fetch(`${config.backendHost}/atencion_cliente/invoke/${uuid}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

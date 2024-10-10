@@ -21,6 +21,7 @@ import { FiUpload, FiTrash } from 'react-icons/fi';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import mammoth from 'mammoth';
+import config from '../config/env';
 
 type Document = {
   id: number;
@@ -47,7 +48,7 @@ const DocumentsManager: React.FC = () => {
         const id_pasteleria = localStorage.getItem('id_pasteleria');
 
         // Llamada al primer endpoint (obtener documentos de la base de datos)
-        const documentosResponse = await fetch(`http://localhost:8000/pastelerias/${id_pasteleria}/documentos`, {
+        const documentosResponse = await fetch(`${config.backendHost}/pastelerias/${id_pasteleria}/documentos`, {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
@@ -71,7 +72,7 @@ const DocumentsManager: React.FC = () => {
         const documentosData = await documentosResponse.json();
 
         // Llamada al segundo endpoint (obtener contenido de los archivos en la bucket)
-        const filesResponse = await fetch(`http://localhost:8000/pastelerias/${id_pasteleria}/files`, {
+        const filesResponse = await fetch(`${config.backendHost}/pastelerias/${id_pasteleria}/files`, {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
@@ -221,7 +222,7 @@ const DocumentsManager: React.FC = () => {
         const token = localStorage.getItem('token');
         const id_pasteleria = localStorage.getItem('id_pasteleria');
 
-        const response = await fetch('http://localhost:8000/writeFileContent', {
+        const response = await fetch('${config.backendHost}/writeFileContent', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

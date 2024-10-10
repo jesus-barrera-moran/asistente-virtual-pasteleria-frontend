@@ -16,6 +16,7 @@ import {
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import config from '../config/env';
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState<string>('');
@@ -32,7 +33,7 @@ const Login: React.FC = () => {
       formData.append('username', username);  // Cambia 'email' por 'username'
       formData.append('password', password);
 
-      const response = await fetch('http://localhost:8000/token', {
+      const response = await fetch(`${config.backendHost}/token`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',

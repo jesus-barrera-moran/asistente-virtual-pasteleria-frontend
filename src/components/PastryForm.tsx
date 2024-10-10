@@ -19,6 +19,7 @@ import {
 import { FiUpload, FiTrash } from 'react-icons/fi';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import config from '../config/env';
 
 const PastryForm: React.FC = () => {
   const [name, setName] = useState<string>('');
@@ -61,7 +62,7 @@ const PastryForm: React.FC = () => {
   
     try {
       // Enviar la solicitud con FormData
-      const response = await fetch('http://localhost:8000/pastelerias', {
+      const response = await fetch(`${config.backendHost}/pastelerias`, {
         method: 'POST',
         body: formData, // Enviamos formData en lugar de JSON
       });

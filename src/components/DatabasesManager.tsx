@@ -18,6 +18,7 @@ import {
 import { useState, useEffect } from 'react';
 import DatabaseConnectionDetails from './DatabaseConnectionDetails';
 import { FaSave, FaTimes } from 'react-icons/fa';
+import config from '../config/env';
 
 type DatabaseConnection = {
   id: number;
@@ -45,7 +46,7 @@ const DatabaseConnectionsManager: React.FC = () => {
         const token = localStorage.getItem('token');
         const id_pasteleria = localStorage.getItem('id_pasteleria');
 
-        const response = await fetch(`http://localhost:8000/pastelerias/${id_pasteleria}/bases-datos`, {
+        const response = await fetch(`${config.backendHost}/pastelerias/${id_pasteleria}/bases-datos`, {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
@@ -112,7 +113,7 @@ const DatabaseConnectionsManager: React.FC = () => {
       try {
         const token = localStorage.getItem('token');
 
-        const response = await fetch(`http://localhost:8000/bases-datos/${selectedConnection.id}`, {
+        const response = await fetch(`${config.backendHost}/bases-datos/${selectedConnection.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -171,7 +172,7 @@ const DatabaseConnectionsManager: React.FC = () => {
     try {
       const token = localStorage.getItem('token');
   
-      const response = await fetch(`http://localhost:8000/bases-datos/${selectedConnectionId}/clave`, {
+      const response = await fetch(`${config.backendHost}/bases-datos/${selectedConnectionId}/clave`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'text/plain', // Enviar el campo como texto plano
@@ -242,7 +243,7 @@ const DatabaseConnectionsManager: React.FC = () => {
       const id_pasteleria = localStorage.getItem('id_pasteleria');
 
       const response = await fetch(
-        `http://localhost:8000/pastelerias/${id_pasteleria}/bases-datos/${selectedConnectionId}/probar-conexion`,
+        `${config.backendHost}/pastelerias/${id_pasteleria}/bases-datos/${selectedConnectionId}/probar-conexion`,
         {
           headers: {
             'Content-Type': 'application/json',

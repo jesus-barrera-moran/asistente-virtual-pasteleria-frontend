@@ -22,6 +22,7 @@ import { CheckIcon } from '@chakra-ui/icons';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import config from '../config/env';
 
 type User = {
   id: number;
@@ -54,7 +55,7 @@ const EmployeesManager: React.FC = () => {
         const id_pasteleria = localStorage.getItem('id_pasteleria');
         const usuario = localStorage.getItem('usuario');
 
-        const response = await fetch(`http://localhost:8000/pastelerias/${id_pasteleria}/usuarios`, {
+        const response = await fetch(`${config.backendHost}/pastelerias/${id_pasteleria}/usuarios`, {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
@@ -154,7 +155,7 @@ const EmployeesManager: React.FC = () => {
       setSaving((prev) => ({ ...prev, [user.id]: true }));
       const token = localStorage.getItem('token');
 
-      const response = await fetch(`http://localhost:8000/users/${user.username}`, {
+      const response = await fetch(`${config.backendHost}/users/${user.username}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

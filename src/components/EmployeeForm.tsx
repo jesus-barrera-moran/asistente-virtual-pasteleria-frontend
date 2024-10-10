@@ -19,6 +19,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import UserProfileView from './UserProfileView';
 import { FaSave, FaTimes } from 'react-icons/fa';
+import config from '../config/env';
 
 const EmployeeForm: React.FC = () => {
   const [username, setUsername] = useState<string>(''); 
@@ -54,7 +55,7 @@ const EmployeeForm: React.FC = () => {
             return;
           }
 
-          const response = await fetch('http://localhost:8000/users/me', {
+          const response = await fetch(`${config.backendHost}/users/me`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
@@ -132,7 +133,7 @@ const EmployeeForm: React.FC = () => {
 
     try {
       if (updatePasswordMode) {
-        const response = await fetch('http://localhost:8000/users/me/password', {
+        const response = await fetch(`${config.backendHost}/users/me/password`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -195,7 +196,7 @@ const EmployeeForm: React.FC = () => {
         const endpoint = pathname === '/profile' ? '/users/me' : '/users';
         const method = pathname === '/profile' ? 'PUT' : 'POST'; 
 
-        const response = await fetch(`http://localhost:8000${endpoint}`, {
+        const response = await fetch(`${config.backendHost}${endpoint}`, {
           method,
           headers: {
             'Content-Type': 'application/json',
