@@ -1,5 +1,5 @@
 const config = {
-    backendHost: process.env.BACKEND_HOST || 'http://localhost:8000'
+    backendHost: process.env.NEXT_PUBLIC_BACKEND_HOST || 'http://localhost:8000'
 };
 
 export default config;
