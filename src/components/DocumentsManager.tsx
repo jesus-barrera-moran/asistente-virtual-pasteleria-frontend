@@ -222,7 +222,7 @@ const DocumentsManager: React.FC = () => {
         const token = localStorage.getItem('token');
         const id_pasteleria = localStorage.getItem('id_pasteleria');
 
-        const response = await fetch('${config.backendHost}/writeFileContent', {
+        const response = await fetch(`${config.backendHost}/writeFileContent`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
