@@ -19,8 +19,6 @@ import { PropsWithChildren } from 'react';
 import { IRoute } from '@/types/navigation';
 import { HSeparator } from '@/components/separator/Separator';
 
-import logo1 from '../../../../public/img/chat/Logo-1.png';
-
 interface SidebarContent extends PropsWithChildren {
   routes: IRoute[];
   [x: string]: any;
@@ -211,7 +209,7 @@ function SidebarContent(props: SidebarContent) {
         </Button>
       </Flex>
 
-      {logoMenu && (<Img src={logo1.src} w="75px" margin={'0 auto'} />)}
+      {logoMenu && (<Img src={logoMenu} w="75px" margin={'0 auto'} />)}
 
       <Flex alignItems="center" flexDirection="column">
         <Text
