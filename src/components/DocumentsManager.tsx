@@ -9,15 +9,26 @@ import {
   Input,
   Stack,
   Textarea,
-  Select,
-  Text,
   Spinner,
   HStack,
   VisuallyHidden,
-  IconButton,
   useToast,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  TableContainer,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  useDisclosure,
 } from '@chakra-ui/react';
-import { FiUpload, FiTrash } from 'react-icons/fi';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import mammoth from 'mammoth';
@@ -33,10 +44,12 @@ type Document = {
 
 const DocumentsManager: React.FC = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
-  const [selectedDocumentId, setSelectedDocumentId] = useState<number | null>(null);
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [isEditable, setIsEditable] = useState<boolean>(false);
   const toast = useToast();
   const router = useRouter();
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const validFileTypes = ['text/plain', 'text/csv', 'text/markdown', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
   const maxFileSize = 2 * 1024 * 1024; // 2MB
@@ -110,31 +123,28 @@ const DocumentsManager: React.FC = () => {
     fetchDocumentsData();
   }, [toast, router]);
 
-  const handleDocumentChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedId = parseInt(event.target.value, 10);
-    setSelectedDocumentId(selectedId);
-  
-    // Buscar el documento seleccionado y actualizar el contenido
-    const selectedDocument = documents.find(doc => doc.id === selectedId);
-    if (selectedDocument) {
-      setDocuments(prevDocuments => 
-        prevDocuments.map(doc => 
-          doc.id === selectedId ? { ...doc, content: selectedDocument.content } : doc
-        )
-      );
-    }
+  const handleViewDocument = (doc: Document) => {
+    // Ver documento en modo no editable
+    setSelectedDocument(doc);
+    setIsEditable(false);
+    onOpen();
   };
 
-  const handleContentChange = (newContent: string) => {
-    setDocuments((prevDocuments) =>
-      prevDocuments.map((doc) =>
-        doc.id === selectedDocumentId ? { ...doc, content: newContent } : doc
-      )
-    );
+  const handleEditDocument = (doc: Document) => {
+    // Editar documento en modo editable
+    setSelectedDocument(doc);
+    setIsEditable(true);
+    onOpen();
+  };
+
+  const handleReplaceDocument = (docId: number) => {
+    // Setear el documento seleccionado para reemplazar archivo
+    setSelectedDocument((prev) => (prev?.id === docId ? prev : documents.find((doc) => doc.id === docId) || null));
+    document.getElementById(`file-input-${docId}`)?.click(); // Abre el input de archivo
   };
 
   const handleFileChange = async (file: File | null) => {
-    if (file && selectedDocumentId !== null) {
+    if (file && selectedDocument) {
       const fileExtension = file.name.split('.').pop()?.toLowerCase();
 
       const isValidFile = validFileTypes.includes(file.type) || fileExtension === 'md';
@@ -164,29 +174,19 @@ const DocumentsManager: React.FC = () => {
       const reader = new FileReader();
 
       if (file.type === 'text/plain' || file.type === 'text/csv' || fileExtension === 'md') {
-        reader.onload = (event) => {
+        reader.onload = async (event) => {
           const fileContent = event.target?.result as string;
-
-          setDocuments((prevDocuments) =>
-            prevDocuments.map((doc) =>
-              doc.id === selectedDocumentId ? { ...doc, content: fileContent, file } : doc
-            )
-          );
+          updateDocumentContent(fileContent); // Actualizar y guardar contenido
         };
         reader.readAsText(file);
       } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-        reader.onload = (event) => {
+        reader.onload = async (event) => {
           const arrayBuffer = event.target?.result;
 
           mammoth.extractRawText({ arrayBuffer })
             .then((result) => {
               const extractedText = result.value;
-
-              setDocuments((prevDocuments) =>
-                prevDocuments.map((doc) =>
-                  doc.id === selectedDocumentId ? { ...doc, content: extractedText, file } : doc
-                )
-              );
+              updateDocumentContent(extractedText); // Actualizar y guardar contenido
             })
             .catch(() => {
               toast({
@@ -207,18 +207,26 @@ const DocumentsManager: React.FC = () => {
     }
   };
 
-  const handleRemoveFile = () => {
-    setDocuments((prevDocuments) =>
-      prevDocuments.map((doc) =>
-        doc.id === selectedDocumentId ? { ...doc, file: null } : doc
-      )
-    );
+  const updateDocumentContent = async (newContent: string) => {
+    // Actualizar el contenido del documento seleccionado
+    if (selectedDocument) {
+      setSelectedDocument({ ...selectedDocument, content: newContent });
+
+      // Actualizar el contenido en la lista de documentos
+      setDocuments((prevDocuments) =>
+        prevDocuments.map((doc) =>
+          doc.id === selectedDocument.id ? { ...doc, content: newContent } : doc
+        )
+      );
+
+      // Guardar el documento después de reemplazar el contenido
+      await handleSaveChanges();
+    }
   };
 
   const handleSaveChanges = async () => {
     setLoading(true);
 
-    const selectedDocument = documents.find(doc => doc.id === selectedDocumentId);
     if (selectedDocument) {
       try {
         const token = localStorage.getItem('token');
@@ -273,9 +281,7 @@ const DocumentsManager: React.FC = () => {
     }
 
     setLoading(false);
-  };  
-
-  const selectedDocument = documents.find(doc => doc.id === selectedDocumentId);
+  };
 
   if (loading) {
     return (
@@ -289,84 +295,78 @@ const DocumentsManager: React.FC = () => {
     <Flex minH="85vh" align="start" justify="center" bg="none">
       <Stack spacing={8} mx="auto" w="100%" bg="none" pt={16} px={6}>
         <Box w="100%" maxW="1000px" mx="auto" p={6} bg="none" rounded="lg">
-          <FormControl id="select-document">
-            <FormLabel>Seleccionar Documento</FormLabel>
-            <Select placeholder="Selecciona un documento" onChange={handleDocumentChange}>
-              {documents.map((doc) => (
-                <option key={doc.id} value={doc.id}>
-                  {doc.interfaz}
-                </option>
-              ))}
-            </Select>
-          </FormControl>
+          <TableContainer>
+            <Table variant="simple">
+              <Thead>
+                <Tr>
+                  <Th>Título</Th>
+                  <Th>Acciones</Th>
+                </Tr>
+              </Thead>
+              <Tbody>
+                {documents.map((doc) => (
+                  <Tr key={doc.id}>
+                    <Td>{doc.interfaz}</Td>
+                    <Td>
+                      <HStack spacing={2}>
+                        <Button size="sm" onClick={() => handleViewDocument(doc)}>
+                          Ver
+                        </Button>
+                        <Button size="sm" onClick={() => handleEditDocument(doc)}>
+                          Editar
+                        </Button>
+                        <Button size="sm" onClick={() => handleReplaceDocument(doc.id)}>
+                          Reemplazar
+                        </Button>
+                        <VisuallyHidden>
+                          <Input
+                            type="file"
+                            accept=".txt,.csv,.md,.docx"
+                            id={`file-input-${doc.id}`}
+                            onChange={(e) => handleFileChange(e.target.files ? e.target.files[0] : null)}
+                          />
+                        </VisuallyHidden>
+                      </HStack>
+                    </Td>
+                  </Tr>
+                ))}
+              </Tbody>
+            </Table>
+          </TableContainer>
 
-          {selectedDocument && (
-            <Box mt={6}>
-              <FormControl id={`title-${selectedDocument.id}`}>
-                <FormLabel>Título</FormLabel>
-                <Input type="text" value={selectedDocument.interfaz} readOnly isReadOnly />
-              </FormControl>
-
-              <FormControl id={`content-${selectedDocument.id}`} mt={4}>
-                <FormLabel>Contenido</FormLabel>
-                <Textarea
-                  value={selectedDocument.content}
-                  onChange={(e) => handleContentChange(e.target.value)}
-                  placeholder="Escribe el contenido del documento aquí..."
-                  rows={6}
-                />
-              </FormControl>
-
-              <FormControl id={`file-${selectedDocument.id}`} mt={4}>
-                <FormLabel>Cargar Archivo</FormLabel>
-                <HStack spacing={4}>
-                  <Box>
-                    <VisuallyHidden>
-                      <Input
-                        type="file"
-                        accept=".txt,.csv,.md,.docx"
-                        id={`file-input-${selectedDocument.id}`}
-                        onChange={(e) => handleFileChange(e.target.files ? e.target.files[0] : null)}
-                      />
-                    </VisuallyHidden>
-                    <label htmlFor={`file-input-${selectedDocument.id}`}>
-                      <IconButton
-                        as="span"
-                        aria-label="Subir archivo"
-                        icon={<FiUpload />}
-                        bg="blue.400"
-                        color="white"
-                        _hover={{ bg: 'blue.500' }}
-                        size="md"
-                      />
-                    </label>
-                  </Box>
-                  {selectedDocument.file ? (
-                    <>
-                      <Text>{selectedDocument.file.name}</Text>
-                      <IconButton
-                        aria-label="Eliminar archivo"
-                        icon={<FiTrash />}
-                        colorScheme="red"
-                        onClick={handleRemoveFile}
-                      />
-                    </>
-                  ) : (
-                    <Text>Ningún archivo seleccionado</Text>
-                  )}
-                </HStack>
-              </FormControl>
-
-              <Button
-                mt={6}
-                colorScheme="blue"
-                isLoading={loading}
-                onClick={handleSaveChanges}
-              >
-                Guardar Cambios
-              </Button>
-            </Box>
-          )}
+          <Modal isOpen={isOpen} onClose={onClose} size="6xl">
+            <ModalOverlay />
+            <ModalContent bg="white">
+              <ModalHeader>{selectedDocument?.title}</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody>
+                <FormControl>
+                  <FormLabel>Contenido</FormLabel>
+                  <Textarea
+                    value={selectedDocument?.content || ''}
+                    onChange={(e) =>
+                      isEditable &&
+                      setSelectedDocument((prev) =>
+                        prev ? { ...prev, content: e.target.value } : null
+                      )
+                    }
+                    isReadOnly={!isEditable}
+                    rows={10}
+                  />
+                </FormControl>
+              </ModalBody>
+              <ModalFooter>
+                {isEditable && (
+                  <Button colorScheme="blue" onClick={handleSaveChanges}>
+                    Guardar
+                  </Button>
+                )}
+                <Button variant="ghost" onClick={onClose}>
+                  Cerrar
+                </Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
         </Box>
       </Stack>
     </Flex>
