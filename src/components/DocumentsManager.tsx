@@ -129,6 +129,10 @@ const DocumentsManager: React.FC = () => {
     fetchDocumentsData();
   }, [toast, router]);
 
+  const handleToggleEdit = () => {
+    setIsEditable((prev) => !prev); // Alterna entre modo edición y vista
+  };
+
   const handleViewDocument = (doc: Document) => {
     // Ver documento en modo no editable
     setSelectedDocument(doc);
@@ -354,6 +358,7 @@ const DocumentsManager: React.FC = () => {
             isEditable={isEditable}
             onContentChange={(content) => setSelectedDocument((prev) => (prev ? { ...prev, content } : null))}
             onSave={onSaveConfirmOpen}
+            onToggleEdit={handleToggleEdit} // Pasar función para alternar modo
           />
 
           <ConfirmationModal
