@@ -95,6 +95,22 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
               boxShadow="md"
               p={4}
               borderRadius="md"
+              resize="vertical"
+              overflowY="auto"
+              sx={{
+                '&::-webkit-scrollbar': {
+                  width: '8px',
+                  backgroundColor: 'gray.100',
+                  borderRadius: '8px',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  backgroundColor: 'blue.300',
+                  borderRadius: '8px',
+                },
+                '&:hover::-webkit-scrollbar-thumb': {
+                  backgroundColor: 'blue.400',
+                },
+              }}
             />
           </FormControl>
         </ModalBody>
