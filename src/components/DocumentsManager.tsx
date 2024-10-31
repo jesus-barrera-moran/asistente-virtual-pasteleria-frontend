@@ -25,6 +25,7 @@ import mammoth from 'mammoth';
 import config from '../config/env';
 import DocumentModal from '@/components/DocumentModal';
 import ConfirmationModal from '@/components/ConfirmationModal';
+import { FaEye, FaEdit, FaSyncAlt } from 'react-icons/fa';
 
 type Document = {
   id: number;
@@ -273,6 +274,8 @@ const DocumentsManager: React.FC = () => {
           duration: 5000,
           isClosable: true,
         });
+        
+        setIsEditable(false);
       } catch (error) {
         toast({
           title: 'Error',
@@ -300,28 +303,38 @@ const DocumentsManager: React.FC = () => {
     <Flex minH="85vh" align="start" justify="center" bg="none">
       <Stack spacing={8} mx="auto" w="100%" bg="none" pt={16} px={6}>
         <Box w="100%" maxW="1000px" mx="auto" p={6} bg="none" rounded="lg">
-          <TableContainer>
-            <Table variant="simple">
+          <TableContainer overflowX="hidden">
+            <Table variant="simple" size="md" bg="white" borderRadius="md">
               <Thead>
-                <Tr>
-                  <Th>Título</Th>
-                  <Th>Acciones</Th>
+                <Tr bg="white.100">
+                  <Th color="black.600" fontWeight="bold" fontSize="md" p={4} textAlign="center">
+                    Título
+                  </Th>
+                  <Th color="black.600" fontWeight="bold" fontSize="md" p={4} textAlign="center">
+                    Acciones
+                  </Th>
                 </Tr>
               </Thead>
               <Tbody>
                 {documents.map((doc) => (
-                  <Tr key={doc.id}>
-                    <Td>{doc.interfaz}</Td>
-                    <Td>
-                      <HStack spacing={2}>
-                        <Button size="sm" onClick={() => handleViewDocument(doc)}>
-                          Ver
+                  <Tr
+                    key={doc.id}
+                    _hover={{ boxShadow: "md", backgroundColor: "gray.50" }}
+                    transition="all 0.2s ease-in-out"
+                  >
+                    <Td fontWeight="semibold" p={4} color="black.600" textAlign="center">
+                      {doc.interfaz}
+                    </Td>
+                    <Td p={4} textAlign="center">
+                      <HStack spacing={2} justifyContent="center">
+                        <Button color="blue.400" size="md" variant="ghost" _hover={{ color: 'blue.500' }} onClick={() => handleViewDocument(doc)}>
+                          <FaEye />
                         </Button>
-                        <Button size="sm" onClick={() => handleEditDocument(doc)}>
-                          Editar
+                        <Button color="blue.400" size="md" variant="ghost" _hover={{ color: 'blue.500' }} onClick={() => handleEditDocument(doc)}>
+                          <FaEdit />
                         </Button>
-                        <Button size="sm" onClick={() => handleReplaceDocument(doc.id)}>
-                          Reemplazar
+                        <Button color="blue.400" size="md" variant="ghost" _hover={{ color: 'blue.500' }} onClick={() => handleReplaceDocument(doc.id)}>
+                          <FaSyncAlt />
                         </Button>
                         <VisuallyHidden>
                           <Input
@@ -358,6 +371,47 @@ const DocumentsManager: React.FC = () => {
             message="¿Estás seguro de que deseas guardar los cambios?"
           />
         </Box>
+        {/* <Box w="100%" maxW="1000px" mx="auto" p={6} bg="none" rounded="lg" overflowX="auto">
+          <TableContainer overflowX="auto">
+            <Table variant="simple" w="100%" maxW="100%">
+              <Thead>
+                <Tr>
+                  <Th textAlign="center">Título</Th>
+                  <Th textAlign="center">Acciones</Th>
+                </Tr>
+              </Thead>
+              <Tbody>
+                {documents.map((doc) => (
+                  <Tr key={doc.id} _hover={{ bg: "gray.50" }}>
+                    <Td textAlign="center">{doc.interfaz}</Td>
+                    <Td textAlign="center">
+                      <HStack spacing={2} justifyContent="center">
+                        <Button size="sm" onClick={() => handleViewDocument(doc)}>
+                          Ver
+                        </Button>
+                        <Button size="sm" onClick={() => handleEditDocument(doc)}>
+                          Editar
+                        </Button>
+                        <Button size="sm" onClick={() => handleReplaceDocument(doc.id)}>
+                          Reemplazar
+                        </Button>
+                        <VisuallyHidden>
+                          <Input
+                            ref={fileInputRef}
+                            type="file"
+                            accept=".txt,.csv,.md,.docx"
+                            id={`file-input-${doc.id}`}
+                            onChange={(e) => handleFileChange(e.target.files ? e.target.files[0] : null)}
+                          />
+                        </VisuallyHidden>
+                      </HStack>
+                    </Td>
+                  </Tr>
+                ))}
+              </Tbody>
+            </Table>
+          </TableContainer>
+        </Box> */}
       </Stack>
     </Flex>
   );
