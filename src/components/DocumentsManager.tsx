@@ -20,19 +20,14 @@ import {
   Th,
   Td,
   TableContainer,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
   useDisclosure,
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import mammoth from 'mammoth';
 import config from '../config/env';
+import DocumentModal from '@/components/DocumentModal';
+import ConfirmationModal from '@/components/ConfirmationModal';
 
 type Document = {
   id: number;
@@ -352,70 +347,30 @@ const DocumentsManager: React.FC = () => {
             </Table>
           </TableContainer>
 
-          <Modal isOpen={isOpen} onClose={onClose} size="6xl">
-            <ModalOverlay />
-            <ModalContent bg="white">
-              <ModalHeader>{selectedDocument?.interfaz}</ModalHeader>
-              <ModalCloseButton />
-              <ModalBody>
-                <FormControl>
-                  <Textarea
-                    value={selectedDocument?.content || ''}
-                    onChange={(e) =>
-                      isEditable &&
-                      setSelectedDocument((prev) =>
-                        prev ? { ...prev, content: e.target.value } : null
-                      )
-                    }
-                    isReadOnly={!isEditable}
-                    rows={10}
-                  />
-                </FormControl>
-              </ModalBody>
-              <ModalFooter>
-                {isEditable && (
-                  <Button colorScheme="blue" onClick={onSaveConfirmOpen}>
-                    Guardar
-                  </Button>
-                )}
-                <Button variant="ghost" onClick={onClose}>
-                  Cerrar
-                </Button>
-              </ModalFooter>
-            </ModalContent>
-          </Modal>
+          <DocumentModal
+            isOpen={isOpen}
+            onClose={onClose}
+            document={selectedDocument}
+            isEditable={isEditable}
+            onContentChange={(content) => setSelectedDocument((prev) => (prev ? { ...prev, content } : null))}
+            onSave={onSaveConfirmOpen}
+          />
 
-          <Modal isOpen={isSaveConfirmOpen} onClose={onSaveConfirmClose} size="sm">
-            <ModalOverlay />
-            <ModalContent bg="white">
-              <ModalHeader>Confirmar Guardado</ModalHeader>
-              <ModalBody>¿Estás seguro de que deseas guardar los cambios?</ModalBody>
-              <ModalFooter>
-                <Button colorScheme="blue" onClick={handleSaveChanges}>
-                  Confirmar
-                </Button>
-                <Button onClick={onSaveConfirmClose} ml={3}>
-                  Cancelar
-                </Button>
-              </ModalFooter>
-            </ModalContent>
-          </Modal>
+          <ConfirmationModal
+            isOpen={isSaveConfirmOpen}
+            onClose={onSaveConfirmClose}
+            onConfirm={handleSaveChanges}
+            title="Confirmar Guardado"
+            message="¿Estás seguro de que deseas guardar los cambios?"
+          />
 
-          <Modal isOpen={isReplaceConfirmOpen} onClose={onReplaceConfirmClose} size="sm">
-            <ModalOverlay />
-            <ModalContent bg="white">
-              <ModalHeader>Confirmar Reemplazo</ModalHeader>
-              <ModalBody>¿Estás seguro de que deseas reemplazar el archivo?</ModalBody>
-              <ModalFooter>
-                <Button colorScheme="blue" onClick={confirmReplaceDocument}>
-                  Confirmar
-                </Button>
-                <Button onClick={onReplaceConfirmClose} ml={3}>
-                  Cancelar
-                </Button>
-              </ModalFooter>
-            </ModalContent>
-          </Modal>
+          <ConfirmationModal
+            isOpen={isReplaceConfirmOpen}
+            onClose={onReplaceConfirmClose}
+            onConfirm={confirmReplaceDocument}
+            title="Confirmar Reemplazo"
+            message="¿Estás seguro de que deseas reemplazar el archivo?"
+          />
         </Box>
       </Stack>
     </Flex>
