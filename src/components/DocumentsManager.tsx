@@ -49,7 +49,18 @@ const DocumentsManager: React.FC = () => {
   const [isEditable, setIsEditable] = useState<boolean>(false);
   const toast = useToast();
   const router = useRouter();
+  
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    isOpen: isSaveConfirmOpen,
+    onOpen: onSaveConfirmOpen,
+    onClose: onSaveConfirmClose
+  } = useDisclosure();
+  const {
+    isOpen: isReplaceConfirmOpen,
+    onOpen: onReplaceConfirmOpen,
+    onClose: onReplaceConfirmClose
+  } = useDisclosure();
 
   const validFileTypes = ['text/plain', 'text/csv', 'text/markdown', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
   const maxFileSize = 2 * 1024 * 1024; // 2MB
@@ -140,7 +151,14 @@ const DocumentsManager: React.FC = () => {
   const handleReplaceDocument = (docId: number) => {
     // Setear el documento seleccionado para reemplazar archivo
     setSelectedDocument((prev) => (prev?.id === docId ? prev : documents.find((doc) => doc.id === docId) || null));
-    document.getElementById(`file-input-${docId}`)?.click(); // Abre el input de archivo
+    onReplaceConfirmOpen();
+  };
+
+  const confirmReplaceDocument = () => {
+    if (selectedDocument) {
+      document.getElementById(`file-input-${selectedDocument.id}`)?.click(); // Abre el input de archivo
+    }
+    onReplaceConfirmClose();
   };
 
   const handleFileChange = async (file: File | null) => {
@@ -219,8 +237,7 @@ const DocumentsManager: React.FC = () => {
         )
       );
 
-      // Guardar el documento después de reemplazar el contenido
-      await handleSaveChanges();
+      onSaveConfirmOpen();
     }
   };
 
@@ -281,6 +298,7 @@ const DocumentsManager: React.FC = () => {
     }
 
     setLoading(false);
+    onSaveConfirmClose();
   };
 
   if (loading) {
@@ -337,11 +355,10 @@ const DocumentsManager: React.FC = () => {
           <Modal isOpen={isOpen} onClose={onClose} size="6xl">
             <ModalOverlay />
             <ModalContent bg="white">
-              <ModalHeader>{selectedDocument?.title}</ModalHeader>
+              <ModalHeader>{selectedDocument?.interfaz}</ModalHeader>
               <ModalCloseButton />
               <ModalBody>
                 <FormControl>
-                  <FormLabel>Contenido</FormLabel>
                   <Textarea
                     value={selectedDocument?.content || ''}
                     onChange={(e) =>
@@ -357,12 +374,44 @@ const DocumentsManager: React.FC = () => {
               </ModalBody>
               <ModalFooter>
                 {isEditable && (
-                  <Button colorScheme="blue" onClick={handleSaveChanges}>
+                  <Button colorScheme="blue" onClick={onSaveConfirmOpen}>
                     Guardar
                   </Button>
                 )}
                 <Button variant="ghost" onClick={onClose}>
                   Cerrar
+                </Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
+
+          <Modal isOpen={isSaveConfirmOpen} onClose={onSaveConfirmClose} size="sm">
+            <ModalOverlay />
+            <ModalContent bg="white">
+              <ModalHeader>Confirmar Guardado</ModalHeader>
+              <ModalBody>¿Estás seguro de que deseas guardar los cambios?</ModalBody>
+              <ModalFooter>
+                <Button colorScheme="blue" onClick={handleSaveChanges}>
+                  Confirmar
+                </Button>
+                <Button onClick={onSaveConfirmClose} ml={3}>
+                  Cancelar
+                </Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
+
+          <Modal isOpen={isReplaceConfirmOpen} onClose={onReplaceConfirmClose} size="sm">
+            <ModalOverlay />
+            <ModalContent bg="white">
+              <ModalHeader>Confirmar Reemplazo</ModalHeader>
+              <ModalBody>¿Estás seguro de que deseas reemplazar el archivo?</ModalBody>
+              <ModalFooter>
+                <Button colorScheme="blue" onClick={confirmReplaceDocument}>
+                  Confirmar
+                </Button>
+                <Button onClick={onReplaceConfirmClose} ml={3}>
+                  Cancelar
                 </Button>
               </ModalFooter>
             </ModalContent>
