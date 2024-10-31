@@ -4,11 +4,7 @@ import {
   Box,
   Button,
   Flex,
-  FormControl,
-  FormLabel,
-  Input,
   Stack,
-  Textarea,
   Spinner,
   HStack,
   VisuallyHidden,
@@ -21,8 +17,9 @@ import {
   Td,
   TableContainer,
   useDisclosure,
+  Input,
 } from '@chakra-ui/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import mammoth from 'mammoth';
 import config from '../config/env';
@@ -51,14 +48,10 @@ const DocumentsManager: React.FC = () => {
     onOpen: onSaveConfirmOpen,
     onClose: onSaveConfirmClose
   } = useDisclosure();
-  const {
-    isOpen: isReplaceConfirmOpen,
-    onOpen: onReplaceConfirmOpen,
-    onClose: onReplaceConfirmClose
-  } = useDisclosure();
-
+  
   const validFileTypes = ['text/plain', 'text/csv', 'text/markdown', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
   const maxFileSize = 2 * 1024 * 1024; // 2MB
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const fetchDocumentsData = async () => {
@@ -148,22 +141,19 @@ const DocumentsManager: React.FC = () => {
   };
 
   const handleReplaceDocument = (docId: number) => {
-    // Setear el documento seleccionado para reemplazar archivo
     setSelectedDocument((prev) => (prev?.id === docId ? prev : documents.find((doc) => doc.id === docId) || null));
-    onReplaceConfirmOpen();
-  };
-
-  const confirmReplaceDocument = () => {
-    if (selectedDocument) {
-      document.getElementById(`file-input-${selectedDocument.id}`)?.click(); // Abre el input de archivo
+    
+    // Reinicia el input para que se pueda volver a seleccionar el archivo
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
-    onReplaceConfirmClose();
+
+    fileInputRef.current?.click(); // Abre el input de archivo
   };
 
   const handleFileChange = async (file: File | null) => {
     if (file && selectedDocument) {
       const fileExtension = file.name.split('.').pop()?.toLowerCase();
-
       const isValidFile = validFileTypes.includes(file.type) || fileExtension === 'md';
 
       if (!isValidFile) {
@@ -225,11 +215,9 @@ const DocumentsManager: React.FC = () => {
   };
 
   const updateDocumentContent = async (newContent: string) => {
-    // Actualizar el contenido del documento seleccionado
     if (selectedDocument) {
       setSelectedDocument({ ...selectedDocument, content: newContent });
 
-      // Actualizar el contenido en la lista de documentos
       setDocuments((prevDocuments) =>
         prevDocuments.map((doc) =>
           doc.id === selectedDocument.id ? { ...doc, content: newContent } : doc
@@ -255,8 +243,8 @@ const DocumentsManager: React.FC = () => {
             'Authorization': `Bearer ${token}`,
           },
           body: JSON.stringify({
-            name: selectedDocument.title,  // Usar el título del documento como nombre del archivo
-            content: selectedDocument.content,  // Usar el contenido actual del documento
+            name: selectedDocument.title,
+            content: selectedDocument.content,
           }),
         });
 
@@ -337,6 +325,7 @@ const DocumentsManager: React.FC = () => {
                         </Button>
                         <VisuallyHidden>
                           <Input
+                            ref={fileInputRef}
                             type="file"
                             accept=".txt,.csv,.md,.docx"
                             id={`file-input-${doc.id}`}
@@ -358,7 +347,7 @@ const DocumentsManager: React.FC = () => {
             isEditable={isEditable}
             onContentChange={(content) => setSelectedDocument((prev) => (prev ? { ...prev, content } : null))}
             onSave={onSaveConfirmOpen}
-            onToggleEdit={handleToggleEdit} // Pasar función para alternar modo
+            onToggleEdit={handleToggleEdit}
           />
 
           <ConfirmationModal
@@ -367,14 +356,6 @@ const DocumentsManager: React.FC = () => {
             onConfirm={handleSaveChanges}
             title="Confirmar Guardado"
             message="¿Estás seguro de que deseas guardar los cambios?"
-          />
-
-          <ConfirmationModal
-            isOpen={isReplaceConfirmOpen}
-            onClose={onReplaceConfirmClose}
-            onConfirm={confirmReplaceDocument}
-            title="Confirmar Reemplazo"
-            message="¿Estás seguro de que deseas reemplazar el archivo?"
           />
         </Box>
       </Stack>
