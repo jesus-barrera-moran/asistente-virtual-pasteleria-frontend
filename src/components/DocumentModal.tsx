@@ -1,5 +1,3 @@
-'use client';
-
 import {
   Modal,
   ModalOverlay,
@@ -13,9 +11,8 @@ import {
   Button,
   Icon,
   Flex,
-  Box,
-  Badge,
   Text,
+  Switch,
 } from '@chakra-ui/react';
 import { FaEye, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
 import React from 'react';
@@ -59,18 +56,21 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
           py={4}
         >
           <Flex alignItems="center">
-            <Icon as={FaEdit} color="blue.400" mr={2} />
+            <Icon as={isEditable ? FaEdit : FaEye} color="blue.400" mr={2} />
             <Text fontSize="2xl" fontWeight="bold" color="gray.700">
               {document?.interfaz}
             </Text>
           </Flex>
-          <Badge
-            colorScheme={isEditable ? 'blue' : 'gray'}
-            variant="solid"
-            fontSize="0.9em"
-          >
-            {isEditable ? 'Modo Edición' : 'Modo Visualización'}
-          </Badge>
+          <Flex mr={10} alignItems="center">
+            <Text mr={2} fontSize="sm" color="gray.500">
+              {isEditable ? 'Edición' : 'Visualización'}
+            </Text>
+            <Switch
+              colorScheme="blue"
+              isChecked={isEditable}
+              onChange={onToggleEdit}
+            />
+          </Flex>
         </ModalHeader>
         <ModalCloseButton
           color="gray.600"
@@ -100,15 +100,6 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
         </ModalBody>
         <ModalFooter>
           <Flex w="full" justifyContent="center">
-            <Button
-              leftIcon={<Icon as={isEditable ? FaEye : FaEdit} />}
-              colorScheme="blue"
-              onClick={onToggleEdit}
-              mr={3}
-              _hover={{ bg: 'blue.500' }}
-            >
-              {isEditable ? 'Ver' : 'Editar'}
-            </Button>
             {isEditable && (
               <Button
                 leftIcon={<Icon as={FaSave} />}
