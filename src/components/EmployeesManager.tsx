@@ -261,7 +261,7 @@ const EmployeesManager: React.FC = () => {
                     </Tr>
                   </Thead>
                   <Tbody>
-                    {currentUsers.filter(user => user.role !== '17').map((user) => (
+                    {currentUsers.map((user) => (
                       <Tr key={user.id}>
                         <Td>{user.username}</Td>
                         <Td>{user.email}</Td>
@@ -273,6 +273,7 @@ const EmployeesManager: React.FC = () => {
                           >
                             <option value="11">Administrador</option>
                             <option value="12">Empleado</option>
+                            {user.role === '17' && <option value="17">Propietario</option>}
                           </Select>
                         </Td>
                         <Td>
