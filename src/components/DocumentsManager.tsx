@@ -25,7 +25,7 @@ import mammoth from 'mammoth';
 import config from '../config/env';
 import DocumentModal from '@/components/DocumentModal';
 import ConfirmationModal from '@/components/ConfirmationModal';
-import { FaEye, FaEdit, FaSyncAlt } from 'react-icons/fa';
+import { FaEye, FaEdit, FaFileUpload } from 'react-icons/fa';
 
 type Document = {
   id: number;
@@ -334,7 +334,7 @@ const DocumentsManager: React.FC = () => {
                           <FaEdit />
                         </Button>
                         <Button color="blue.400" size="md" variant="ghost" _hover={{ color: 'blue.500' }} onClick={() => handleReplaceDocument(doc.id)}>
-                          <FaSyncAlt />
+                          <FaFileUpload />
                         </Button>
                         <VisuallyHidden>
                           <Input

@@ -21,7 +21,7 @@ export const getActiveRoute = (routes: IRoute[], pathname: string, isPublicRoute
   const route = findCurrentRoute(routes, pathname);
   return isPublicRoute === true
     ? 'Asistente'
-    : route?.name || 'Default Brand Text';
+    : route?.name || 'Nuevo Empleado';
 };
 
 export const getActiveNavbar = (
