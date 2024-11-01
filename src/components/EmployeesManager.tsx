@@ -271,6 +271,7 @@ const EmployeesManager: React.FC = () => {
                             onChange={(e) => handleRoleChange(user.id, e.target.value)}
                             isDisabled={isRoleReadOnly(user.role, originalRoles[user.id])}
                           >
+                            <option value="17">Propietario</option>
                             <option value="11">Administrador</option>
                             <option value="12">Empleado</option>
                           </Select>
