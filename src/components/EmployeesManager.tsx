@@ -273,7 +273,7 @@ const EmployeesManager: React.FC = () => {
                           >
                             <option value="11">Administrador</option>
                             <option value="12">Empleado</option>
-                            {user.role === '17' && <option value="17">Propietario</option>}
+                            {user.role == '17' && <option value="17">Propietario</option>}
                           </Select>
                         </Td>
                         <Td>
